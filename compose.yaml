@@ -11,7 +11,14 @@ services:
     volumes:
       # Lets SerialPort.list() read the device database, so the path stays discovered.
       - /run/udev:/run/udev:ro
+      # Recorded history. Drop this and every chart starts empty after a restart.
+      - pylontech-data:/data
     environment:
       # Optional: pin the port instead of discovering it.
       # SERIAL_PATH: /dev/ttyUSB0
+      # Optional: record into MySQL or Postgres instead of the bundled SQLite file.
+      # DATABASE_URL: postgres://user:pass@host:5432/pylontech
       TZ: Europe/Kyiv
+
+volumes:
+  pylontech-data:

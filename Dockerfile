@@ -26,7 +26,14 @@ RUN apt-get update \
 # ships prebuilt for every platform inside the package, so one tree serves amd64 and arm64.
 COPY node_modules node_modules
 COPY apps/daemon/dist apps/daemon/dist
+COPY apps/daemon/migrations apps/daemon/migrations
 COPY apps/web/dist apps/web/dist
+
+# History lands in /data. Mount a volume there to keep it across upgrades; without one it is
+# still recorded, just discarded with the container. SQLite needs the directory writable by the
+# process, which is `node`, not root.
+RUN mkdir -p /data && chown node:node /data
+VOLUME /data
 
 USER node
 

@@ -22,6 +22,18 @@ export const config = {
   pollCellsMs: Number(process.env['POLL_CELLS_MS'] ?? 30000),
   pollStatMs: Number(process.env['POLL_STAT_MS'] ?? 3600000),
   pollIdentityMs: Number(process.env['POLL_IDENTITY_MS'] ?? 300000),
+  /**
+   * One variable picks the engine. A path or `file:` DSN is SQLite; `mysql://` and `postgres://`
+   * switch to those. The default lives under /data because that is the one directory the image
+   * expects to be a volume — without one the history is still written, just not kept.
+   */
+  databaseUrl: process.env['DATABASE_URL'] ?? 'file:/data/pylontech.db',
+  historyEnabled: process.env['HISTORY_ENABLED'] !== 'false',
+  /** The console is polled every few seconds; this is how much of that is kept as one row. */
+  historyIntervalMs: Number(process.env['HISTORY_INTERVAL_MS'] ?? 60000),
+  historyRetentionDays: Number(process.env['HISTORY_RETENTION_DAYS'] ?? 365),
+  /** Same depth trick as `webRoot`: dist/main.mjs and src/config.ts sit one level under the app. */
+  migrationsRoot: fileURLToPath(new URL('../migrations', import.meta.url)),
 };
 
 function parseAddresses(value: string | undefined): number[] | null {

@@ -15,6 +15,9 @@ import {
 import type { ConsolePort } from './console-port.ts';
 import { config } from './config.ts';
 
+export type PollEvent = 'sample' | 'health';
+export type PollListener = (event: PollEvent, snapshot: Snapshot) => void;
+
 /**
  * Holds the latest reading of every pack. Schedules are staggered rather than run on one
  * tick so the slow `stat` sweep never lands on the same beat as the fast `pwr` poll.
@@ -35,6 +38,7 @@ export class Poller {
 
   private timers: NodeJS.Timeout[] = [];
   private running = new Set<string>();
+  private listeners: PollListener[] = [];
 
   private readonly console: ConsolePort;
 
@@ -49,6 +53,17 @@ export class Poller {
       port: this.console.path,
       error: this.console.lastError,
     };
+  }
+
+  /** The recorder is the only listener today; the poller stays unaware of what it feeds. */
+  on(listener: PollListener): void {
+    this.listeners.push(listener);
+  }
+
+  private announce(event: PollEvent): void {
+    for (const listener of this.listeners) {
+      listener(event, this.current);
+    }
   }
 
   start(): void {
@@ -128,6 +143,8 @@ export class Poller {
         totals: computeTotals(packs, this.snapshot.cells, this.snapshot.info),
         updatedAt: new Date().toISOString(),
       };
+
+      this.announce('sample');
     } catch {
       // Transient read failures are surfaced through `console.lastError`, not thrown here.
     }
@@ -194,6 +211,7 @@ export class Poller {
       const euro: EuroStats = parseEuro(await this.console.send('euro'));
 
       this.snapshot = { ...this.snapshot, euro };
+      this.announce('health');
     } catch {
       // Older firmware does not implement `euro`; the rest of the snapshot is unaffected.
     }
@@ -214,5 +232,6 @@ export class Poller {
     }
 
     this.snapshot = { ...this.snapshot, stats };
+    this.announce('health');
   }
 }

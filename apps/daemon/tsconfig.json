@@ -11,5 +11,5 @@
     "lib": ["ES2023"],
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "../../libs/protocol/src/**/*.ts"]
+  "include": ["src/**/*.ts", "drizzle.*.config.ts", "../../libs/protocol/src/**/*.ts"]
 }
