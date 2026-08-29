@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The daemon is never emitted: it runs straight from source under
+    // `node --experimental-strip-types`, so `build` is a typecheck.
+    "noEmit": true,
+    // libs/protocol uses explicit `.ts` specifiers, which strip-only mode requires.
+    "allowImportingTsExtensions": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "../../libs/protocol/src/**/*.ts"]
+}

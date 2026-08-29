@@ -1,0 +1,52 @@
+{
+  "name": "@pylontech/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "packageManager": "npm@11.19.0",
+  "scripts": {
+    "dev": "nx run-many -t serve -p daemon web --output-style=stream",
+    "daemon": "nx run daemon:serve",
+    "daemon:start": "nx run daemon:start",
+    "web": "nx run web:serve",
+    "build": "nx run-many -t build",
+    "lint": "nx run-many -t lint",
+    "lint:fix": "nx run-many -t lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@nx/eslint": "^23.1.2",
+    "@nx/eslint-plugin": "^23.1.2",
+    "@nx/js": "^23.1.2",
+    "@nx/vite": "^23.1.2",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsonc": "^3.4.2",
+    "eslint-plugin-promise": "^7.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.5",
+    "jsonc-eslint-parser": "^3.3.0",
+    "nx": "^23.1.2",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
+  },
+  "allowScripts": {
+    "@serialport/bindings-cpp@13.0.0": true,
+    "nx@23.1.2": true,
+    "unrs-resolver@1.12.2": true,
+    "fsevents@2.3.3": true
+  }
+}

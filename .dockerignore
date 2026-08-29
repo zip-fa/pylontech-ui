@@ -1,0 +1,16 @@
+# Everything the build does not need. Keeping node_modules out is the important one: the image
+# installs its own for the target platform, and the host's native serialport binding is the
+# wrong architecture.
+node_modules
+**/node_modules
+**/dist
+.nx
+.git
+.github
+.idea
+.vscode
+*.tsbuildinfo
+.DS_Store
+npm-debug.log
+Dockerfile
+.dockerignore

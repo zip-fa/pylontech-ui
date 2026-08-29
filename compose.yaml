@@ -1,0 +1,17 @@
+services:
+  pylontech-ui:
+    image: ghcr.io/zip-fa/pylontech-ui:latest
+    container_name: pylontech-ui
+    restart: unless-stopped
+    ports:
+      - '4300:4300'
+    devices:
+      # The RS-232 adapter as it enumerates on the host. Check with `ls /dev/ttyUSB*`.
+      - '/dev/ttyUSB0:/dev/ttyUSB0'
+    volumes:
+      # Lets SerialPort.list() read the device database, so the path stays discovered.
+      - /run/udev:/run/udev:ro
+    environment:
+      # Optional: pin the port instead of discovering it.
+      # SERIAL_PATH: /dev/ttyUSB0
+      TZ: Europe/Kyiv

@@ -1,0 +1,10 @@
+# Build & cache
+/dist
+/coverage
+/.nx
+
+# Dependencies
+node_modules
+
+# Lockfiles
+package-lock.json

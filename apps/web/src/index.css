@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * DESIGN NOTES
+ *
+ * Identity: a switchboard, not a web page. Panels butt against each other separated by hairlines
+ * rather than floating on a background with gaps, which is what buys the density this screen needs.
+ *
+ * Colour: the chrome is deliberately achromatic graphite so that the only saturated pixels on the
+ * page are measurements. Three disjoint systems carry all the colour:
+ *   ok / warn / critical  -> severity (spread, alarms, non-Normal states)
+ *   dev-neg / dev-pos     -> signed deviation from a pack's own cell mean; the page's signature
+ *   charge                -> state of charge only, so it never reads as a severity
+ *
+ * Type: the system UI stack, at 13px with tight leading. Figures are tabular everywhere, because
+ * this page is read by comparing columns of digits.
+ */
+
+:root {
+  --ground: #e8ebee;
+  --panel: #ffffff;
+  --panel-sunken: #f2f4f6;
+  --rule: #ccd3d9;
+  --rule-strong: #aeb8c0;
+  --ink: #0d1215;
+  --ink-dim: #5e6b73;
+  --ink-faint: #8c979f;
+
+  --ok: #0f7a45;
+  --ok-soft: #d9f0e3;
+  --warn: #9a6206;
+  --warn-soft: #fbeed3;
+  --critical: #bb2b21;
+  --critical-soft: #fadedb;
+  --charge: #147a86;
+
+  --dev-zero: #e9edf0;
+  --dev-neg-1: #d7e6f8;
+  --dev-neg-2: #aecdf2;
+  --dev-neg-3: #74a9e6;
+  --dev-neg-4: #2f77cd;
+  --dev-pos-1: #fadde2;
+  --dev-pos-2: #f4b6c1;
+  --dev-pos-3: #e88394;
+  --dev-pos-4: #cf4560;
+  --dev-ink: #0d1215;
+  --dev-ink-strong: #ffffff;
+  --balance-stripe: rgba(13, 18, 21, 0.3);
+
+  --ring: #6d7a83;
+}
+
+.dark {
+  --ground: #05080a;
+  --panel: #0e1317;
+  --panel-sunken: #0a0e11;
+  --rule: #1e262c;
+  --rule-strong: #2c3740;
+  --ink: #dfe6eb;
+  --ink-dim: #85929c;
+  --ink-faint: #5f6c76;
+
+  --ok: #35c184;
+  --ok-soft: #0d2a1d;
+  --warn: #e0a63b;
+  --warn-soft: #2e2410;
+  --critical: #ff6d61;
+  --critical-soft: #341412;
+  --charge: #3fb8c8;
+
+  --dev-zero: #161d23;
+  --dev-neg-1: #12283e;
+  --dev-neg-2: #163c62;
+  --dev-neg-3: #21598f;
+  --dev-neg-4: #3d88d6;
+  --dev-pos-1: #3a1a22;
+  --dev-pos-2: #5d2434;
+  --dev-pos-3: #913a52;
+  --dev-pos-4: #d95c78;
+  --dev-ink: #dfe6eb;
+  --dev-ink-strong: #ffffff;
+  --balance-stripe: rgba(223, 230, 235, 0.36);
+
+  --ring: #66757f;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-panel: var(--panel);
+  --color-panel-sunken: var(--panel-sunken);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-charge: var(--charge);
+
+  --radius-sm: 2px;
+  --radius-md: 3px;
+}
+
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--ground);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.35;
+    font-feature-settings: 'cv02', 'cv03', 'cv04';
+    -webkit-font-smoothing: antialiased;
+    /* An instrument panel scrolls down, never sideways. */
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--rule-strong);
+    color: var(--panel);
+  }
+
+  /* Firefox leaves scrollbars opaque and heavy; the panels are too dense for that. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border: 2px solid var(--panel);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Every reading is compared column-wise, so digits are monospaced and fixed width. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Silkscreened panel label: condensed, small, wide-tracked, never sentence case. */
+  .silk {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    line-height: 1;
+  }
+
+  .stripe-balancing {
+    background-image: repeating-linear-gradient(135deg, var(--balance-stripe) 0 1.5px, transparent 1.5px 5px);
+  }
+
+  /*
+   * Panel grid: children sit on a hairline bed rather than being separated by gaps, so a dense
+   * screen reads as one instrument instead of a scattering of cards.
+   */
+  .bed {
+    background-color: var(--rule);
+    gap: 1px;
+  }
+}
