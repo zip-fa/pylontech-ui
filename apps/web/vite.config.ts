@@ -19,8 +19,12 @@ export default defineConfig({
   },
   server: {
     port: 4200,
-    // Same-origin /api keeps the client free of CORS and host config.
-    proxy: { '/api': { target: daemon, changeOrigin: true } },
+    // Same-origin /api keeps the client free of CORS and host config. /metrics rides along so
+    // the scrape path is the conventional one in development as well as in the built image.
+    proxy: {
+      '/api': { target: daemon, changeOrigin: true },
+      '/metrics': { target: daemon, changeOrigin: true },
+    },
   },
   build: { outDir: 'dist', emptyOutDir: true },
 });

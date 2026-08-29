@@ -12,7 +12,7 @@ import { PackMetrics } from '@/components/pack-metrics';
 import { StackBand } from '@/components/stack-band';
 import { TopRail } from '@/components/top-rail';
 import { Panel, PanelBody, PanelHead } from '@/components/ui/card';
-import { Tabs, type TabDef } from '@/components/ui/tabs';
+import { Tabs, type TabEntry } from '@/components/ui/tabs';
 import { POLL_INTERVAL_MS, useSnapshotFeed } from '@/hooks/use-snapshot';
 import { useTheme } from '@/hooks/use-theme';
 import { toCellRows } from '@/lib/cell-rows';
@@ -26,6 +26,9 @@ const TAB_IDS = [
 ] as const;
 
 type TabId = (typeof TAB_IDS)[number];
+
+/** Vite proxies /metrics to the daemon in development, so one relative href works everywhere. */
+const METRICS_TAB = { id: 'metrics', label: 'Metrics', href: '/metrics' };
 
 function isTabId(value: string): value is TabId {
   return (TAB_IDS as readonly string[]).includes(value);
@@ -43,7 +46,9 @@ function useHashTab(): [TabId, (id: TabId) => void] {
     const onHashChange = () => {
       const next = globalThis.location.hash.replace('#', '');
 
-      if (isTabId(next)) setTab(next);
+      if (isTabId(next)) {
+        setTab(next);
+      }
     };
 
     globalThis.addEventListener('hashchange', onHashChange);
@@ -111,7 +116,7 @@ export function App() {
     [addresses, snapshot],
   );
 
-  const tabs: Array<TabDef<TabId>> = [
+  const tabs: Array<TabEntry<TabId>> = [
     { id: 'cells', label: 'Cells & pack stats' },
     { id: 'degradation', label: 'Degradation' },
     { id: 'lifetime', label: 'Lifetime' },
@@ -122,6 +127,7 @@ export function App() {
       tone: 'critical',
     },
     { id: 'hardware', label: 'Firmware & hardware' },
+    METRICS_TAB,
   ];
 
   return (
@@ -137,27 +143,36 @@ export function App() {
       />
 
       {feed.isPending && !snapshot ? (
-        <EmptyState
-          icon={Loader2}
-          title="Contacting the daemon"
-          detail="Polling /api/state. Nothing has arrived yet."
-        />
+        <>
+          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <EmptyState
+            icon={Loader2}
+            title="Contacting the daemon"
+            detail="Polling /api/state. Nothing has arrived yet."
+          />
+        </>
       ) : !snapshot ? (
-        <EmptyState
-          icon={PlugZap}
-          title="No snapshot available"
-          detail="The daemon did not return a readable snapshot. Start it with `npm run daemon`."
-        />
+        <>
+          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <EmptyState
+            icon={PlugZap}
+            title="No snapshot available"
+            detail="The daemon did not return a readable snapshot. Start it with `npm run daemon`."
+          />
+        </>
       ) : packs.length === 0 ? (
-        <EmptyState
-          icon={BatteryWarning}
-          title="No packs reporting"
-          detail={
-            snapshot.connected
-              ? 'The console is open but no pack answered the last poll. Check the link cabling and pack addressing.'
-              : 'The serial port is not open, so no pack data can be read.'
-          }
-        />
+        <>
+          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <EmptyState
+            icon={BatteryWarning}
+            title="No packs reporting"
+            detail={
+              snapshot.connected
+                ? 'The console is open but no pack answered the last poll. Check the link cabling and pack addressing.'
+                : 'The serial port is not open, so no pack data can be read.'
+            }
+          />
+        </>
       ) : (
         <>
           {snapshot.totals ? (
