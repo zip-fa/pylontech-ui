@@ -21,6 +21,9 @@ interface QueueItem {
 // `stat` paginates over a dozen pages and each page costs a console round trip of several seconds.
 const RESPONSE_TIMEOUT_MS = 60000;
 const WAKE_TIMEOUT_MS = 10000;
+// One carriage return can land inside the console's own boot burst and be swallowed, so the
+// prompt is asked for repeatedly rather than once.
+const WAKE_NUDGE_MS = 1500;
 const SETTLE_MS = 8000;
 const MAX_PAGES = 60;
 
@@ -186,6 +189,8 @@ export class ConsolePort {
       if (echoMatches(frame.frame, this.active.command)) {
         const item = this.active;
 
+        // A completed round trip proves the link, so any earlier complaint about it is stale.
+        this.lastError = null;
         this.settle();
         item.resolve(cleanResponse(frame.frame, item.command));
 
@@ -232,12 +237,17 @@ export class ConsolePort {
     const sawPrompt = await new Promise<boolean>((resolve) => {
       const finish = (value: boolean): void => {
         clearTimeout(timer);
+
+        if (nudge) clearInterval(nudge);
         this.notify = null;
         this.draining = false;
         this.buffer = '';
         resolve(value);
       };
       const timer = setTimeout(() => finish(false), timeoutMs);
+      const nudge = wake
+        ? setInterval(() => this.port?.write('\r'), WAKE_NUDGE_MS)
+        : null;
 
       // The prompt proves the console is awake; waiting out the full timeout would only delay boot.
       this.notify = wake
