@@ -7,3 +7,4 @@
 !apps/daemon/dist
 !apps/daemon/migrations
 !apps/web/dist
+!entrypoint.sh

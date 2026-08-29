@@ -30,12 +30,14 @@ COPY apps/daemon/migrations apps/daemon/migrations
 COPY apps/web/dist apps/web/dist
 
 # History lands in /data. Mount a volume there to keep it across upgrades; without one it is
-# still recorded, just discarded with the container. SQLite needs the directory writable by the
-# process, which is `node`, not root.
+# still recorded, just discarded with the container.
 RUN mkdir -p /data && chown node:node /data
 VOLUME /data
 
-USER node
+# The container starts as root only long enough to work out who should own the history, then
+# drops for good. See entrypoint.sh — a bind-mounted /data belongs to the host, not the image.
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 ENV PORT=4300
 EXPOSE 4300
