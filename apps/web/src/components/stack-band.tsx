@@ -1,14 +1,10 @@
 import type { StackTotals } from '@libs/protocol';
 import { CircleAlert, ShieldCheck } from 'lucide-react';
-import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Kpi } from '@/components/ui/kpi';
 import { num, signed, whAsKwh } from '@/lib/format';
-import {
-  SPREAD_LABEL_KEY,
-  spreadSeverity,
-  type Severity,
-} from '@/lib/severity';
+import { SPREAD_LABEL_KEY, spreadSeverity } from '@/lib/severity';
 import { cn } from '@/lib/utils';
 
 function flowKey(
@@ -103,43 +99,6 @@ export function StackBand({ totals }: { totals: StackTotals }) {
         present={totals.presentCount}
         total={totals.packCount}
       />
-    </div>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  unit,
-  foot,
-  tone = 'ok',
-}: {
-  label: string;
-  value: string;
-  unit?: string;
-  foot?: ReactNode;
-  tone?: Severity;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col justify-between gap-1 bg-panel px-3 py-2">
-      <span className="silk text-ink-faint">{label}</span>
-      <span
-        className={cn(
-          'tnum flex items-baseline gap-1 text-[26px] leading-none font-semibold tracking-tight',
-          tone === 'warn' && 'text-[var(--warn)]',
-          tone === 'critical' && 'text-[var(--critical)]',
-        )}
-      >
-        <span className="truncate">{value}</span>
-        {unit ? (
-          <span className="text-[12px] font-normal text-ink-faint">{unit}</span>
-        ) : null}
-      </span>
-      {typeof foot === 'string' ? (
-        <span className="truncate text-[11px] text-ink-faint">{foot}</span>
-      ) : (
-        foot
-      )}
     </div>
   );
 }

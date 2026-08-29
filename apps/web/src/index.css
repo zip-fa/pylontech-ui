@@ -50,6 +50,23 @@
   --balance-stripe: rgba(13, 18, 21, 0.3);
 
   --ring: #6d7a83;
+
+  /*
+   * Series colour. A chart is measurement, so it is allowed to be saturated, but the flow of energy
+   * is not a severity: charging is not "good" and discharging is not "bad", so neither borrows the
+   * ok/critical pair. The numbered ramp is identity only — which pack a line belongs to — and is
+   * ordered for distinguishability rather than magnitude.
+   */
+  --series-in: #1f7a5c;
+  --series-out: #a8590c;
+  --series-soc: var(--charge);
+  --chart-1: #2f77cd;
+  --chart-2: #c2571f;
+  --chart-3: #7a4fbd;
+  --chart-4: #0f8a7a;
+  --chart-5: #b03a6a;
+  --chart-6: #6f7d17;
+  --grid: #dfe4e9;
 }
 
 .dark {
@@ -84,6 +101,17 @@
   --balance-stripe: rgba(223, 230, 235, 0.36);
 
   --ring: #66757f;
+
+  --series-in: #46c39a;
+  --series-out: #e0a154;
+  --series-soc: var(--charge);
+  --chart-1: #5a9ff0;
+  --chart-2: #ef8a4b;
+  --chart-3: #a684e8;
+  --chart-4: #34bfab;
+  --chart-5: #e4718f;
+  --chart-6: #b3c23f;
+  --grid: #1b2329;
 }
 
 @theme inline {
@@ -103,6 +131,9 @@
   --color-critical: var(--critical);
   --color-critical-soft: var(--critical-soft);
   --color-charge: var(--charge);
+  --color-series-in: var(--series-in);
+  --color-series-out: var(--series-out);
+  --color-grid: var(--grid);
 
   --radius-sm: 2px;
   --radius-md: 3px;

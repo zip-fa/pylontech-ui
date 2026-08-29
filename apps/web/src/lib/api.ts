@@ -10,7 +10,7 @@ export interface Health {
 
 const TIMEOUT_MS = 4000;
 
-async function getJson<T>(path: string): Promise<T> {
+export async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, {
     signal: AbortSignal.timeout(TIMEOUT_MS),
     headers: { accept: 'application/json' },

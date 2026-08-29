@@ -225,9 +225,13 @@ export function Degradation({
                   label={t('degradation.reserveCapacity')}
                   value={`${int(euro.remainCapacity2)} Ah`}
                 />
+                {/*
+                  The console calls this "Remain Power" but it is energy, not power: it divides by
+                  the remaining amp-hours at a pack voltage, which is what watt-hours do.
+                */}
                 <Field
-                  label={t('degradation.remainingPower')}
-                  value={`${int(euro.remainPower)} W`}
+                  label={t('degradation.remainingEnergy')}
+                  value={`${int(euro.remainPower)} Wh`}
                 />
                 <Field
                   label={t('degradation.extremeTemp')}

@@ -1,6 +1,11 @@
 import type { PackCells } from '@libs/protocol';
-import { BatteryWarning, Loader2, PlugZap } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  BatteryWarning,
+  Loader2,
+  PlugZap,
+  type LucideIcon,
+} from 'lucide-react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CellMatrix } from '@/components/cell-matrix';
@@ -17,9 +22,20 @@ import { Tabs, type TabEntry } from '@/components/ui/tabs';
 import { POLL_INTERVAL_MS, useSnapshotFeed } from '@/hooks/use-snapshot';
 import { useTheme } from '@/hooks/use-theme';
 import { toCellRows } from '@/lib/cell-rows';
+import type { RangeId } from '@/lib/history';
+
+/*
+ * Recharts is about half the bundle on its own, and this page is served by the daemon on the
+ * battery's own network. Everything else loads on the first paint; the charts load when someone
+ * actually asks for them.
+ */
+const HistoryPanel = lazy(async () => ({
+  default: (await import('@/components/history')).HistoryPanel,
+}));
 
 const TAB_IDS = [
   'cells',
+  'history',
   'degradation',
   'lifetime',
   'protection',
@@ -68,6 +84,8 @@ export function App() {
   const [theme, toggleTheme] = useTheme();
   const [tab, setTab] = useHashTab();
   const [now, setNow] = useState(() => Date.now());
+  // Held here rather than in the panel so switching tabs does not reset the chosen window.
+  const [range, setRange] = useState<RangeId>('24h');
 
   const feed = useSnapshotFeed();
   const snapshot = feed.snapshot;
@@ -122,8 +140,37 @@ export function App() {
     href: '/metrics',
   };
 
+  const historyTab = { id: 'history' as const, label: t('tabs.history') };
+
+  /*
+   * When there is nothing live to show, the recorded view is exactly what a reader wants — a link
+   * that has just dropped is the moment you go looking for what happened before it did. So the
+   * degraded screens keep the History tab rather than collapsing to a single message.
+   */
+  const degraded = (icon: LucideIcon, title: string, detail: string) => (
+    <>
+      <Tabs tabs={[historyTab, metricsTab]} active={tab} onSelect={setTab} />
+      {tab === 'history' ? (
+        <Suspense
+          fallback={
+            <EmptyState
+              icon={Loader2}
+              title={t('history.loadingTitle')}
+              detail={t('history.loadingDetail')}
+            />
+          }
+        >
+          <HistoryPanel range={range} onRangeChange={setRange} totals={null} />
+        </Suspense>
+      ) : (
+        <EmptyState icon={icon} title={title} detail={detail} />
+      )}
+    </>
+  );
+
   const tabs: Array<TabEntry<TabId>> = [
     { id: 'cells', label: t('tabs.cells') },
+    historyTab,
     { id: 'degradation', label: t('tabs.degradation') },
     { id: 'lifetime', label: t('tabs.lifetime') },
     {
@@ -149,36 +196,25 @@ export function App() {
       />
 
       {feed.isPending && !snapshot ? (
-        <>
-          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
-          <EmptyState
-            icon={Loader2}
-            title={t('empty.contactingTitle')}
-            detail={t('empty.contactingDetail')}
-          />
-        </>
+        degraded(
+          Loader2,
+          t('empty.contactingTitle'),
+          t('empty.contactingDetail'),
+        )
       ) : !snapshot ? (
-        <>
-          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
-          <EmptyState
-            icon={PlugZap}
-            title={t('empty.noSnapshotTitle')}
-            detail={t('empty.noSnapshotDetail')}
-          />
-        </>
+        degraded(
+          PlugZap,
+          t('empty.noSnapshotTitle'),
+          t('empty.noSnapshotDetail'),
+        )
       ) : packs.length === 0 ? (
-        <>
-          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
-          <EmptyState
-            icon={BatteryWarning}
-            title={t('empty.noPacksTitle')}
-            detail={
-              snapshot.connected
-                ? t('empty.noPacksConnected')
-                : t('empty.noPacksDisconnected')
-            }
-          />
-        </>
+        degraded(
+          BatteryWarning,
+          t('empty.noPacksTitle'),
+          snapshot.connected
+            ? t('empty.noPacksConnected')
+            : t('empty.noPacksDisconnected'),
+        )
       ) : (
         <>
           {snapshot.totals ? (
@@ -234,6 +270,24 @@ export function App() {
                   </Panel>
                 </div>
               </div>
+            ) : null}
+
+            {tab === 'history' ? (
+              <Suspense
+                fallback={
+                  <EmptyState
+                    icon={Loader2}
+                    title={t('history.loadingTitle')}
+                    detail={t('history.loadingDetail')}
+                  />
+                }
+              >
+                <HistoryPanel
+                  range={range}
+                  onRangeChange={setRange}
+                  totals={snapshot.totals}
+                />
+              </Suspense>
             ) : null}
 
             {tab === 'degradation' ? (
