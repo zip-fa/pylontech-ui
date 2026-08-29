@@ -23,20 +23,40 @@ const HINTS: Record<string, ParseKeys | undefined> = {
   'lifetime.sohRecalculations': 'hints.soh',
 };
 
-/** The `Cnt` family, spelled out. Firmware may report others; those fall back to the family text. */
+/**
+ * The `Cnt` family, spelled out, keyed exactly as the console prints it. Uppercasing the key
+ * first would turn `HT@0.5C` into a row this table cannot name, and there is nothing to gain:
+ * the firmware spells these the same way every time. `HT@0.5C` and `LT@0.5C` keep the decimal
+ * point out of their translation keys because i18next splits keys on dots.
+ */
 const CONDITION_TERMS: Record<string, ParseKeys | undefined> = {
+  Charge: 'hints.condition.Charge',
+  Discharge: 'hints.condition.Discharge',
+  Status: 'hints.condition.Status',
+  'HT@0.5C': 'hints.condition.HTat05C',
+  'LT@0.5C': 'hints.condition.LTat05C',
   HT: 'hints.condition.HT',
   LT: 'hints.condition.LT',
-  HV: 'hints.condition.HV',
   LV: 'hints.condition.LV',
 };
 
-function conditionHint(t: TFunction, key: string): string {
-  const term = CONDITION_TERMS[key.toUpperCase()];
+/**
+ * Rows the firmware files under `Cnt` that count no condition at all — `Status` reads in the
+ * thousands on a healthy pack. Saying they are not a disconnection would imply they are a fault,
+ * so their text stands alone instead of taking the family sentence.
+ */
+const NOT_A_CONDITION = new Set(['Charge', 'Discharge', 'Status']);
 
-  return term
-    ? t('hints.condition.known', { term: t(term) })
-    : t('hints.condition.unknown');
+function conditionHint(t: TFunction, key: string): string {
+  const term = CONDITION_TERMS[key];
+
+  if (!term) {
+    return t('hints.condition.unknown');
+  }
+
+  return NOT_A_CONDITION.has(key)
+    ? t(term)
+    : t('hints.condition.known', { term: t(term) });
 }
 
 export function PackHistory({ addresses, stats }: PackHistoryProps) {
@@ -155,28 +175,45 @@ export interface PackFaultsProps {
 }
 
 /**
- * Standard BMS shorthand, as the console prints it. Anything the firmware reports under a name
- * that is not here still gets the family explanation rather than a guess at the abbreviation.
+ * Every protection this firmware emits, keyed as the console spells it — mixed case and all.
+ * The old table uppercased the key first and so looked for `BAT OV`, which is not what comes
+ * back; almost everything missed and fell through to the generic text. Firmware that reports a
+ * name not listed here still gets the family explanation rather than a guess at the letters.
  */
 const FAULT_TERMS: Record<string, ParseKeys | undefined> = {
-  'BAT OV': 'hints.fault.BAT OV',
-  'BAT UV': 'hints.fault.BAT UV',
-  'CELL OV': 'hints.fault.CELL OV',
-  'CELL UV': 'hints.fault.CELL UV',
   COC: 'hints.fault.COC',
+  COC2: 'hints.fault.COC2',
+  COCA: 'hints.fault.COCA',
   DOC: 'hints.fault.DOC',
+  DOC2: 'hints.fault.DOC2',
+  DOCA: 'hints.fault.DOCA',
   SC: 'hints.fault.SC',
-  COTP: 'hints.fault.COTP',
-  CUTP: 'hints.fault.CUTP',
-  DOTP: 'hints.fault.DOTP',
-  DUTP: 'hints.fault.DUTP',
-  'MOS OTP': 'hints.fault.MOS OTP',
-  'ENV OTP': 'hints.fault.ENV OTP',
-  'ENV UTP': 'hints.fault.ENV UTP',
+  'Bat OV': 'hints.fault.Bat OV',
+  'Bat HV': 'hints.fault.Bat HV',
+  'Bat LV': 'hints.fault.Bat LV',
+  'Bat UV': 'hints.fault.Bat UV',
+  'Bat SLP': 'hints.fault.Bat SLP',
+  'Pwr OV': 'hints.fault.Pwr OV',
+  'Pwr HV': 'hints.fault.Pwr HV',
+  'Pwr LV': 'hints.fault.Pwr LV',
+  'Pwr UV': 'hints.fault.Pwr UV',
+  'Pwr SLP': 'hints.fault.Pwr SLP',
+  COT: 'hints.fault.COT',
+  CUT: 'hints.fault.CUT',
+  DOT: 'hints.fault.DOT',
+  DUT: 'hints.fault.DUT',
+  CHT: 'hints.fault.CHT',
+  CLT: 'hints.fault.CLT',
+  DHT: 'hints.fault.DHT',
+  DLT: 'hints.fault.DLT',
+  RV: 'hints.fault.RV',
+  'Input OV': 'hints.fault.Input OV',
+  BMICERR: 'hints.fault.BMICERR',
+  'Log Charge': 'hints.fault.Log Charge',
 };
 
 function faultHint(t: TFunction, key: string): string {
-  const term = FAULT_TERMS[key.toUpperCase()];
+  const term = FAULT_TERMS[key];
 
   return term
     ? t('hints.fault.known', { term: t(term) })

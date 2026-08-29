@@ -246,34 +246,73 @@ export const en = {
     coulomb:
       "The cell's own charge counter, in milliamp-hours — the charge the BMS believes this cell is holding.",
     condition: {
-      HT: 'ran hotter than its normal band',
-      LT: 'ran colder than its normal band',
-      HV: 'sat above its normal voltage band',
-      LV: 'sat below its normal voltage band',
+      Charge:
+        'Reads zero even on a pack that has charged thousands of times, so it is not a count of charge sessions — the Charge periods row above is that number. What this one counts is not documented.',
+      Discharge:
+        'The discharge side of the Charge counter, and just as unexplained: it does not track discharge sessions, and the firmware does not say what it does track.',
+      Status:
+        'Not a fault of any kind. It reads in the thousands on a healthy pack while every real condition below it sits at zero, which makes it look like a tally of status samples or state changes rather than anything going wrong. A large number here is not a finding.',
+      // The firmware spells these `HT@0.5C` and `LT@0.5C`; i18next splits keys on dots, so the
+      // decimal point cannot survive in the key itself.
+      HTat05C:
+        'Ran hotter than its normal band while carrying at least half its rated current — the same condition as HT, narrowed to the times the current was high enough to be the cause. That qualifier is the only thing separating the two rows.',
+      LTat05C:
+        'Ran colder than its normal band while carrying at least half its rated current — LT, narrowed to the times a heavy current was flowing.',
+      HT: 'Ran hotter than its normal band, at any current.',
+      LT: 'Ran colder than its normal band, at any current.',
+      LV: 'Sat below its normal voltage band. Counts here can run into the tens of thousands, which suggests it tallies readings taken in the band rather than distinct excursions into it.',
       known:
-        'How many times this pack has {{term}}. It counts the condition being seen, not a disconnection — times the BMS actually cut the pack out are on the Protection tab.',
+        '{{term}} It counts the condition being seen, not a disconnection — the times the BMS actually cut the pack out are on the Protection tab.',
       unknown:
-        'A condition counter the firmware keeps under this name. It counts the condition being seen, not a disconnection — times the BMS actually cut the pack out are on the Protection tab.',
+        'A counter the firmware keeps under this name and does not explain. It counts a condition being seen, not a disconnection — the times the BMS actually cut the pack out are on the Protection tab.',
     },
     fault: {
-      'BAT OV': "the whole pack's voltage rose above its limit on charge",
-      'BAT UV': "the whole pack's voltage fell below its limit on discharge",
-      'CELL OV': 'a single cell rose above its voltage limit on charge',
-      'CELL UV': 'a single cell fell below its voltage limit on discharge',
-      COC: 'the charging current went over the limit',
-      DOC: 'the discharging current went over the limit',
-      SC: 'a short circuit was seen across the output',
-      COTP: 'the cells were too hot to charge safely',
-      CUTP: 'the cells were too cold to charge safely',
-      DOTP: 'the cells were too hot to discharge safely',
-      DUTP: 'the cells were too cold to discharge safely',
-      'MOS OTP': 'the power switches ran too hot',
-      'ENV OTP': 'the air around the pack was too hot',
-      'ENV UTP': 'the air around the pack was too cold',
+      COC: 'Charge over-current: current into the pack passed a limit and the BMS stopped taking charge. One of three charge over-current counters — COC, COC2 and COCA — which are three trip points on the same event rather than three different faults.',
+      COC2: 'The second charge over-current trip point, beside COC. A numbered second threshold conventionally tolerates a larger overload for a shorter time before cutting, but this firmware publishes neither figure.',
+      COCA: 'The third charge over-current counter. The A almost certainly stands for alarm — the warning level below the trip — because this firmware pairs a protection with an alarm everywhere else it can. That is read off the name, not stated by the device.',
+      DOC: 'Discharge over-current: current drawn out of the pack passed a limit and the BMS stopped supplying. The mirror of COC, and like it one of three — DOC, DOC2 and DOCA.',
+      DOC2: 'The second discharge over-current trip point, beside DOC — the discharge mirror of COC2.',
+      DOCA: 'The third discharge over-current counter, mirroring COCA: on the name alone, the alarm level rather than the hard trip.',
+      SC: 'Short circuit: a dead short across the terminals, which the BMS opens on in milliseconds. The only protection here with no warning band beneath it — there is nothing gradual about it.',
+      'Bat OV':
+        "Over-voltage on the pack's own voltage: it rose above the hard limit on charge and charging stopped. Bat HV is the warning band below it. Every Bat row measures across the cells; every Pwr row measures at the power terminals.",
+      'Bat HV':
+        "High voltage on the pack's own voltage: it entered the warning band under the hard limit. The soft half of the pair with Bat OV, so this can count without the pack ever being disconnected.",
+      'Bat LV':
+        "Low voltage on the pack's own voltage: it entered the warning band above the hard floor — the soft half of the pair with Bat UV.",
+      'Bat UV':
+        "Under-voltage on the pack's own voltage: it reached the hard floor on discharge and the BMS stopped supplying. Bat LV is the warning band above it.",
+      'Bat SLP':
+        "Sleep, counted against the pack's own voltage. The console reference does list sleep among these protection classes, so a pack putting itself to sleep is a real event here — but what triggers it is not documented, and stopping a deep discharge going further is only the obvious guess.",
+      'Pwr OV':
+        'Over-voltage at the power terminals — the voltage the bus and the inverter present to the pack, not the voltage across its cells. That outside view is what every Pwr row measures; the matching Bat row is the pack itself.',
+      'Pwr HV':
+        'High voltage at the power terminals: the warning band under Pwr OV, measured at the terminals rather than across the cells.',
+      'Pwr LV':
+        'Low voltage at the power terminals: the warning band above Pwr UV, measured at the terminals rather than across the cells.',
+      'Pwr UV':
+        'Under-voltage at the power terminals: the voltage there reached its hard floor. A sagging bus can trip this while the cells themselves are fine.',
+      'Pwr SLP':
+        'The sleep counter on the power-terminal side, paired with Bat SLP the way every other Pwr row pairs with a Bat one. What separates the two in practice is not documented.',
+      COT: 'Charge over-temperature: cells too hot to charge, so charging stopped. COT, CUT, DOT and DUT are the four hard temperature limits — charge and discharge, hot and cold — and CHT, CLT, DHT and DLT are the warning bands sitting inside them.',
+      CUT: 'Charge under-temperature: cells too cold to charge, so charging stopped. This is the temperature limit that matters most in winter, because charging lithium below freezing plates the anode and the damage is permanent.',
+      DOT: 'Discharge over-temperature: cells too hot to keep supplying, so the BMS stopped discharging. The discharge half of the pair with COT.',
+      DUT: 'Discharge under-temperature: cells too cold to keep supplying. A pack tolerates far more cold on discharge than on charge, so this limit normally sits well below CUT.',
+      CHT: 'Charge high-temperature: the warning band below COT. Hot enough on charge to be worth logging, not hot enough to stop charging.',
+      CLT: 'Charge low-temperature: the warning band above CUT. Cold enough on charge to be worth logging, not yet cold enough to stop.',
+      DHT: 'Discharge high-temperature: the warning band below DOT, the discharge mirror of CHT.',
+      DLT: 'Discharge low-temperature: the warning band above DUT, the discharge mirror of CLT.',
+      RV: 'Not documented. On a battery RV usually reads as reverse voltage — a pack wired backwards, or a source connected with the polarity swapped — but that is the name alone, and this firmware never expands it.',
+      'Input OV':
+        'Over-voltage at the charge input. The firmware keeps it apart from Bat OV and Pwr OV, down to its own stored record type (inputov), so it is measuring something those two are not — a charger presenting too high a voltage is the obvious candidate. The distinction is not documented.',
+      BMICERR:
+        'Almost certainly an error reported by the BMIC, the chip that measures the cell voltages. That would make it the one row here pointing at the electronics rather than at the battery. The expansion is read off the name; the firmware never spells it out.',
+      'Log Charge':
+        'Not a protection. The name reads as a count of charge events written to the log, and it sits in this block only because the firmware prints it alongside the trips. Taken from the name alone — nothing here says what makes it advance.',
       known:
-        'Times the BMS cut this pack out of the circuit because {{term}}. The count runs from the factory and never resets, so a figure above zero may be years old rather than a fault happening now.',
+        '{{term}} Counted from the factory and never reset, so a figure above zero can be years old rather than something happening now.',
       unknown:
-        'Times the BMS cut this pack out of the circuit, under the name the firmware gives this protection ("{{key}}"). The count runs from the factory and never resets, so a figure above zero may be years old rather than a fault happening now.',
+        'A protection the firmware counts under the name "{{key}}" and does not explain. Counted from the factory and never reset, so a figure above zero can be years old rather than something happening now.',
     },
   },
 } as const;
