@@ -27,7 +27,7 @@ copies the finished tree. Building by hand means doing the same three steps firs
 
 ```sh
 npm ci
-npm run build --workspace web
+npm run build
 npm ci --omit=dev
 
 docker build -t pylontech-ui .

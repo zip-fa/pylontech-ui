@@ -6,7 +6,7 @@
 # Nothing is compiled here. CI installs the workspace, builds the UI and prunes to production
 # dependencies on the runner, where the npm and Nx caches live; this file only assembles the
 # result. `docker build` therefore expects `node_modules` and `apps/web/dist` to already exist —
-# run `npm ci && npm run build --workspace web` first if you are building by hand.
+# run `npm ci && npm run build` first if you are building by hand.
 
 FROM node:26-bookworm-slim
 

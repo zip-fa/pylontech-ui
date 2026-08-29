@@ -55,8 +55,10 @@ jobs:
       - name: '🧹 Lint'
         run: npm run lint
 
-      - name: '⚡️ Build the UI'
-        run: npm run build --workspace web
+      # Both projects: the web build emits apps/web/dist, and the daemon's target is a typecheck
+      # (it ships as source and Node strips the types), so this is the only gate on daemon types.
+      - name: '⚡️ Build'
+        run: npm run build
 
       # The image ships this tree as-is, so the dev half has to go. A second `npm ci` rather than
       # `npm prune` because only the former is lockfile-exact; both run offline from the npm cache
