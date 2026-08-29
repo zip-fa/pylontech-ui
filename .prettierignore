@@ -1,7 +1,7 @@
 # Build & cache
-/dist
-/coverage
-/.nx
+dist
+coverage
+.nx
 
 # Dependencies
 node_modules

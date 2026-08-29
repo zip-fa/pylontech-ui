@@ -23,12 +23,13 @@ One image, one process. The daemon serves the built UI from the same origin as t
 no second container and no CORS or host configuration.
 
 The image compiles nothing: CI installs, builds and prunes on the runner, and the Dockerfile only
-copies the finished tree. Building by hand means doing the same three steps first.
+copies the finished tree — a bundled daemon, the built UI, and serialport. Building by hand means
+doing the same three steps first.
 
 ```sh
 npm ci
 npm run build
-npm ci --omit=dev
+npm ci --omit=dev --workspace daemon
 
 docker build -t pylontech-ui .
 docker run -d --name pylontech-ui \

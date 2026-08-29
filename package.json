@@ -28,6 +28,7 @@
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^3.10.1",
@@ -47,6 +48,7 @@
     "@serialport/bindings-cpp@13.0.0": true,
     "nx@23.1.2": true,
     "unrs-resolver@1.12.2": true,
-    "fsevents@2.3.3": true
+    "fsevents@2.3.3": true,
+    "esbuild@0.28.2": true
   }
 }

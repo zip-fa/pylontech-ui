@@ -60,11 +60,13 @@ jobs:
       - name: '⚡️ Build'
         run: npm run build
 
-      # The image ships this tree as-is, so the dev half has to go. A second `npm ci` rather than
-      # `npm prune` because only the former is lockfile-exact; both run offline from the npm cache
-      # restored above, so the cost is a few seconds of linking.
-      - name: '✂️ Prune to production dependencies'
-        run: npm ci --omit=dev --no-audit --no-fund --prefer-offline
+      # The image ships this tree as-is, so everything the daemon does not require at runtime has
+      # to go — which is nearly all of it, since the web app's dependencies are already inside
+      # apps/web/dist. Scoping to the one workspace takes the tree from 70 MB to 8 MB. A second
+      # `npm ci` rather than `npm prune` because only the former is lockfile-exact; it runs
+      # offline from the npm cache restored above.
+      - name: '✂️ Prune to runtime dependencies'
+        run: npm ci --omit=dev --workspace daemon --no-audit --no-fund --prefer-offline
 
       - name: '🐳 Set up Docker Buildx'
         uses: docker/setup-buildx-action@v3
