@@ -1,7 +1,10 @@
 import type { Snapshot, StackTotals } from '@libs/protocol';
 import { Moon, RefreshCw, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/use-language';
+import { LANGUAGE_NAMES, LANGUAGES } from '@/i18n';
 import type { Health } from '@/lib/api';
 import { ageLabel, clockTime, secondsSince } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -29,6 +32,10 @@ export function TopRail({
   onToggleTheme,
   onRefresh,
 }: TopRailProps) {
+  const { t } = useTranslation();
+  const [language, cycleLanguage] = useLanguage();
+  const nextLanguage =
+    LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length];
   const connected = snapshot?.connected ?? health?.connected ?? false;
   const port = snapshot?.port ?? health?.port ?? null;
   // Two independent failures: the daemon cannot reach the battery, or we cannot reach the daemon.
@@ -55,10 +62,10 @@ export function TopRail({
               connected ? 'text-ink' : 'text-[var(--critical)]',
             )}
           >
-            {connected ? 'Connected' : 'Disconnected'}
+            {connected ? t('rail.connected') : t('rail.disconnected')}
           </span>
           <code className="rounded-sm bg-panel-sunken px-1.5 py-0.5 text-[11px] text-ink-dim">
-            {port ?? 'no port'}
+            {port ?? t('rail.noPort')}
           </code>
         </span>
 
@@ -78,7 +85,7 @@ export function TopRail({
             variant="ghost"
             size="icon"
             onClick={onRefresh}
-            aria-label="Refresh now"
+            aria-label={t('rail.refresh')}
           >
             <RefreshCw className="size-3.5" />
           </Button>
@@ -86,7 +93,7 @@ export function TopRail({
             variant="ghost"
             size="icon"
             onClick={onToggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            aria-label={theme === 'dark' ? t('rail.toLight') : t('rail.toDark')}
           >
             {theme === 'dark' ? (
               <Sun className="size-3.5" />
@@ -94,12 +101,25 @@ export function TopRail({
               <Moon className="size-3.5" />
             )}
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={cycleLanguage}
+            aria-label={`${t('rail.language')}: ${LANGUAGE_NAMES[nextLanguage].name}`}
+            title={LANGUAGE_NAMES[nextLanguage].name}
+          >
+            <span className="text-[10px] font-semibold tracking-wide">
+              {LANGUAGE_NAMES[nextLanguage].short}
+            </span>
+          </Button>
         </div>
       </div>
 
-      {fetchError ? <ErrorRow label="Daemon" message={fetchError} /> : null}
+      {fetchError ? (
+        <ErrorRow label={t('rail.daemon')} message={fetchError} />
+      ) : null}
       {batteryError ? (
-        <ErrorRow label="Battery" message={batteryError} />
+        <ErrorRow label={t('rail.battery')} message={batteryError} />
       ) : null}
     </div>
   );
@@ -107,33 +127,34 @@ export function TopRail({
 
 /** Model, pack count, cell count and capacity all come from the stack itself. */
 function StackName({ totals }: { totals: StackTotals | null }) {
+  const { t } = useTranslation();
   const models = totals?.models ?? [];
+  // The model names come off the packs themselves, so they read the same in every language.
   const name =
     models.length === 0
-      ? 'Battery stack'
+      ? t('rail.stack')
       : models.length === 1
         ? `${totals?.manufacturer ? `${totals.manufacturer} ` : ''}${models[0]}`
-        : `Mixed · ${models.join(', ')}`;
+        : t('rail.mixed', { models: models.join(', ') });
 
   const parts: string[] = [];
 
   if (totals) {
     // `packCount` is how many addresses the bus enumerates (always 16), not how many packs exist.
-    parts.push(
-      `${totals.presentCount} pack${totals.presentCount === 1 ? '' : 's'}`,
-    );
+    parts.push(t('rail.packs', { count: totals.presentCount }));
 
     if (totals.cellCount > 0) {
-      parts.push(`${totals.cellCount} cells`);
+      parts.push(t('rail.cells', { count: totals.cellCount }));
     }
 
     if (totals.energyNominal !== null) {
-      const partial =
-        totals.ratedPackCount < totals.presentCount
-          ? ` (${totals.ratedPackCount} rated)`
-          : '';
+      const value = (totals.energyNominal / 1000).toFixed(1);
 
-      parts.push(`${(totals.energyNominal / 1000).toFixed(1)} kWh${partial}`);
+      parts.push(
+        totals.ratedPackCount < totals.presentCount
+          ? t('rail.energyPartial', { value, rated: totals.ratedPackCount })
+          : t('rail.energy', { value }),
+      );
     }
   }
 
@@ -143,7 +164,7 @@ function StackName({ totals }: { totals: StackTotals | null }) {
         {name}
       </h1>
       <p className="tnum truncate text-[11px] text-ink-faint">
-        {parts.length > 0 ? parts.join(' · ') : 'waiting for the first reading'}
+        {parts.length > 0 ? parts.join(' · ') : t('rail.waiting')}
       </p>
     </div>
   );

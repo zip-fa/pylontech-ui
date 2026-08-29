@@ -4,6 +4,8 @@ import {
   type PackInfo,
   type PackStat,
 } from '@libs/protocol';
+import type { ParseKeys, TFunction } from 'i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { MetricGrid, type MetricRow } from '@/components/metric-grid';
 import { Panel, PanelBody, PanelHead } from '@/components/ui/card';
@@ -89,6 +91,7 @@ export function Degradation({
   info,
   stats,
 }: DegradationProps) {
+  const { t } = useTranslation();
   const attached = euro ? identifyEuroPack(euro, addresses, stats) : null;
   // Even when the pack cannot be named, the percentage still holds if every pack carries the same
   // nameplate — the usual case for a stack bought as one.
@@ -103,19 +106,20 @@ export function Degradation({
     <div className="bed grid grid-cols-1 gap-px xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
       <Panel>
         <PanelHead
-          title="Measured capacity"
+          title={t('panels.measuredCapacity')}
           note={
             attached === null
-              ? 'console-attached pack · address unidentified'
-              : `pack ${attached} · console cable`
+              ? t('degradation.attachedUnknown')
+              : t('degradation.attachedTo', { address: attached })
           }
         />
         <PanelBody className="flex flex-col gap-4 p-3">
           {euro === null ? (
             <p className="text-xs text-ink-faint">
-              No <code className="text-ink-dim">euro</code> reading yet. The
-              daemon polls it on the slow sweep; it should appear within a
-              minute of the console opening.
+              <Trans
+                i18nKey="degradation.euroMissing"
+                components={{ code: <code className="text-ink-dim" /> }}
+              />
             </p>
           ) : (
             <>
@@ -136,8 +140,13 @@ export function Degradation({
                 <span className="pb-1 text-sm text-ink-dim">Ah</span>
                 <span className="tnum ml-auto pb-1 text-right text-xs text-ink-faint">
                   {rated === null
-                    ? 'nameplate unknown'
-                    : `of ${num(rated, 0)} Ah nameplate${attached === null ? ', shared by every pack' : ''}`}
+                    ? t('degradation.nameplateUnknown')
+                    : t(
+                        attached === null
+                          ? 'degradation.ofNameplateShared'
+                          : 'degradation.ofNameplate',
+                        { value: num(rated, 0) },
+                      )}
                 </span>
               </div>
 
@@ -158,74 +167,79 @@ export function Degradation({
                     />
                   </div>
                   <p className="tnum text-xs text-ink-dim">
-                    {num(health, 1)} % of nameplate ·{' '}
-                    {num(Math.max(0, 100 - health), 1)} % capacity lost
+                    {t('degradation.healthLine', {
+                      retained: num(health, 1),
+                      lost: num(Math.max(0, 100 - health), 1),
+                    })}
                   </p>
                 </div>
               ) : null}
 
               <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-[3px] text-[12px]">
                 <Field
-                  label="In service since"
-                  value={dateText(euro.dateInService)}
+                  label={t('degradation.inService')}
+                  value={dateText(t, euro.dateInService)}
                 />
                 <Field
-                  label="Date of manufacture"
-                  value={dateText(euro.dateOfManufacture)}
+                  label={t('degradation.manufactured')}
+                  value={dateText(t, euro.dateOfManufacture)}
                 />
                 <Field
-                  label="Storage before use"
+                  label={t('degradation.storage')}
                   value={text(euro.storageDays)}
                 />
                 <Field
-                  label="Charge/discharge cycles"
+                  label={t('degradation.cycles')}
                   value={count(euro.cycles)}
                 />
                 <Field
-                  label="Deep discharges"
+                  label={t('degradation.deepDischarges')}
                   value={count(euro.deepDischargeCount)}
                   tone={euro.deepDischargeCount > 0 ? 'warn' : 'ok'}
                 />
                 <Field
-                  label="Internal resistance"
+                  label={t('degradation.resistance')}
                   value={reported(
+                    t,
                     euro.resistanceMilliOhm,
                     `${int(euro.resistanceMilliOhm)} mΩ`,
                   )}
                 />
                 <Field
-                  label="Round-trip efficiency"
+                  label={t('degradation.efficiency')}
                   value={reported(
+                    t,
                     euro.roundTripEfficiency,
                     `${int(euro.roundTripEfficiency)} %`,
                   )}
                 />
                 <Field
-                  label="Self-discharge rate"
+                  label={t('degradation.selfDischarge')}
                   value={reported(
+                    t,
                     euro.selfDischargeRate,
                     int(euro.selfDischargeRate),
                   )}
                 />
                 <Field
-                  label="Reserve capacity"
+                  label={t('degradation.reserveCapacity')}
                   value={`${int(euro.remainCapacity2)} Ah`}
                 />
                 <Field
-                  label="Remaining power"
+                  label={t('degradation.remainingPower')}
                   value={`${int(euro.remainPower)} W`}
                 />
                 <Field
-                  label="Time at extreme temperature"
+                  label={t('degradation.extremeTemp')}
                   value={`${count(euro.extremeTempSeconds)} s`}
                   tone={euro.extremeTempSeconds > 0 ? 'warn' : 'ok'}
                 />
                 <Field
-                  label="Energy in / out"
+                  label={t('degradation.energyInOut')}
                   value={`${whAsKwh(euro.chargeEnergyThroughput, 1)} / ${whAsKwh(euro.dischargeEnergyThroughput, 1)} kWh`}
                 />
                 <Field
-                  label="Charge in / out"
+                  label={t('degradation.chargeInOut')}
                   value={`${count(euro.chargeCapacityThroughput)} / ${count(euro.dischargeCapacityThroughput)} Ah`}
                 />
               </dl>
@@ -236,8 +250,8 @@ export function Degradation({
 
       <Panel>
         <PanelHead
-          title="Per-pack wear"
-          note={`${addresses.length} pack${addresses.length === 1 ? '' : 's'}`}
+          title={t('panels.perPackWear')}
+          note={t('panels.packsNote', { count: addresses.length })}
         />
         <PanelBody className="flex flex-col">
           <PackWear
@@ -248,15 +262,15 @@ export function Degradation({
             stats={stats}
           />
           <p className="border-t border-rule px-3 py-2 text-[11px] leading-relaxed text-ink-faint">
-            <span className="text-ink-dim">euro</span> takes no address: it
-            reports only the pack whose console port holds the cable, so
-            measuring another pack means moving the cable to it.
-            {attached === null
-              ? ' Its counters matched no single pack on the bus, so the column it belongs to is unknown.'
-              : ''}{' '}
-            <span className="text-ink-dim">Charge cycles</span> is derived from
-            accumulated amp-hours rather than counted independently, so it
-            restates lifetime throughput and says nothing on its own about wear.
+            <Trans
+              i18nKey="degradation.euroNote"
+              components={{ term: <span className="text-ink-dim" /> }}
+            />{' '}
+            {attached === null ? `${t('degradation.euroUnmatched')} ` : ''}
+            <Trans
+              i18nKey="degradation.cyclesNote"
+              components={{ term: <span className="text-ink-dim" /> }}
+            />
           </p>
         </PanelBody>
       </Panel>
@@ -271,14 +285,17 @@ function PackWear({
   info,
   stats,
 }: DegradationProps & { attached: number | null }) {
+  const { t } = useTranslation();
+
   const row = (
-    label: string,
+    key: ParseKeys,
     unit: string | undefined,
     render: (stat: PackStat | undefined, address: number) => string,
     tone?: (stat: PackStat | undefined, address: number) => Severity,
     group?: boolean,
   ): MetricRow => ({
-    label,
+    id: key,
+    label: t(key),
     unit,
     group,
     cells: addresses.map((address) => ({
@@ -288,19 +305,19 @@ function PackWear({
   });
 
   const rows: MetricRow[] = [
-    row('Nameplate', 'Ah', (_s, address) => {
+    row('degradation.nameplate', 'Ah', (_s, address) => {
       const rated = nameplateAh(info[address]);
 
       return rated === null ? '—' : num(rated, 0);
     }),
     // Only ever populated for one column: the pack the console cable happens to be plugged into.
-    row('Measured capacity', 'Ah', (_s, address) =>
+    row('degradation.measured', 'Ah', (_s, address) =>
       euro && address === attached
         ? num(euro.remainCapacity, 0)
-        : 'needs the cable',
+        : t('degradation.needsCable'),
     ),
     row(
-      'Capacity retained',
+      'degradation.retained',
       '%',
       (_s, address) => {
         const rated = nameplateAh(info[address]);
@@ -323,16 +340,22 @@ function PackWear({
     ),
     // Firmware-computed, and several builds leave it flat at zero — worth showing, not worth trusting alone.
     row(
-      'State of health, reported',
+      'degradation.sohReported',
       '%',
       (s) =>
-        s === undefined ? '—' : s.soh > 0 ? num(s.soh, 0) : 'not reported',
+        s === undefined
+          ? '—'
+          : s.soh > 0
+            ? num(s.soh, 0)
+            : t('degradation.notReported'),
       (s) => (s && s.soh > 0 ? healthSeverity(s.soh) : 'ok'),
       true,
     ),
-    row('Charge cycles', undefined, (s) => count(s?.cycleTimes)),
-    row('Lifetime discharge', 'Ah', (s) => mahAsAh(s?.dischargeCapacity, 0)),
-    row('Equivalent full cycles', undefined, (s, address) => {
+    row('degradation.cycles', undefined, (s) => count(s?.cycleTimes)),
+    row('degradation.lifetimeDischarge', 'Ah', (s) =>
+      mahAsAh(s?.dischargeCapacity, 0),
+    ),
+    row('degradation.equivalentCycles', undefined, (s, address) => {
       const rated = nameplateAh(info[address]);
 
       if (!s || !rated) {
@@ -341,31 +364,37 @@ function PackWear({
 
       return num(s.dischargeCapacity / 1000 / rated, 1);
     }),
-    row('Charge held now', 'Ah', (s) => num(s?.coulombAh, 1), undefined, true),
-    row('Charge counter', '%', (s) => int(s?.powerPercent)),
+    row(
+      'degradation.chargeHeldNow',
+      'Ah',
+      (s) => num(s?.coulombAh, 1),
+      undefined,
+      true,
+    ),
+    row('degradation.chargeCounter', '%', (s) => int(s?.powerPercent)),
   ];
 
   return (
     <MetricGrid
-      corner="Wear"
-      columns={addresses.map((address) => `Pack ${address}`)}
+      corner={t('grid.wear')}
+      columns={addresses.map((address) => t('grid.pack', { address }))}
       rows={rows}
     />
   );
 }
 
 /** The console prints an all-dashes date when the field was never programmed at the factory. */
-function dateText(value: string): string {
+function dateText(t: TFunction, value: string): string {
   const trimmed = value.trim();
 
   return trimmed === '' || /^-+[\s:-]*$/.test(trimmed)
-    ? 'not programmed'
+    ? t('degradation.notProgrammed')
     : trimmed;
 }
 
 /** Several of these counters read a flat zero on firmware that never computes them. */
-function reported(value: number, formatted: string): string {
-  return value === 0 ? 'not reported' : formatted;
+function reported(t: TFunction, value: number, formatted: string): string {
+  return value === 0 ? t('degradation.notReported') : formatted;
 }
 
 function Field({

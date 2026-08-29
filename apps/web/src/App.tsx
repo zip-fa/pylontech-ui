@@ -1,6 +1,7 @@
 import type { PackCells } from '@libs/protocol';
 import { BatteryWarning, Loader2, PlugZap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { CellMatrix } from '@/components/cell-matrix';
 import { CellTable } from '@/components/cell-table';
@@ -26,9 +27,6 @@ const TAB_IDS = [
 ] as const;
 
 type TabId = (typeof TAB_IDS)[number];
-
-/** Vite proxies /metrics to the daemon in development, so one relative href works everywhere. */
-const METRICS_TAB = { id: 'metrics', label: 'Metrics', href: '/metrics' };
 
 function isTabId(value: string): value is TabId {
   return (TAB_IDS as readonly string[]).includes(value);
@@ -66,6 +64,7 @@ function useHashTab(): [TabId, (id: TabId) => void] {
 }
 
 export function App() {
+  const { t } = useTranslation();
   const [theme, toggleTheme] = useTheme();
   const [tab, setTab] = useHashTab();
   const [now, setNow] = useState(() => Date.now());
@@ -116,18 +115,25 @@ export function App() {
     [addresses, snapshot],
   );
 
+  // Vite proxies /metrics to the daemon in development, so one relative href works everywhere.
+  const metricsTab = {
+    id: 'metrics',
+    label: t('tabs.metrics'),
+    href: '/metrics',
+  };
+
   const tabs: Array<TabEntry<TabId>> = [
-    { id: 'cells', label: 'Cells & pack stats' },
-    { id: 'degradation', label: 'Degradation' },
-    { id: 'lifetime', label: 'Lifetime' },
+    { id: 'cells', label: t('tabs.cells') },
+    { id: 'degradation', label: t('tabs.degradation') },
+    { id: 'lifetime', label: t('tabs.lifetime') },
     {
       id: 'protection',
-      label: 'Protection',
+      label: t('tabs.protection'),
       badge: trips > 0 ? String(trips) : undefined,
       tone: 'critical',
     },
-    { id: 'hardware', label: 'Firmware & hardware' },
-    METRICS_TAB,
+    { id: 'hardware', label: t('tabs.hardware') },
+    metricsTab,
   ];
 
   return (
@@ -144,32 +150,32 @@ export function App() {
 
       {feed.isPending && !snapshot ? (
         <>
-          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
           <EmptyState
             icon={Loader2}
-            title="Contacting the daemon"
-            detail="Polling /api/state. Nothing has arrived yet."
+            title={t('empty.contactingTitle')}
+            detail={t('empty.contactingDetail')}
           />
         </>
       ) : !snapshot ? (
         <>
-          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
           <EmptyState
             icon={PlugZap}
-            title="No snapshot available"
-            detail="The daemon did not return a readable snapshot. Start it with `npm run daemon`."
+            title={t('empty.noSnapshotTitle')}
+            detail={t('empty.noSnapshotDetail')}
           />
         </>
       ) : packs.length === 0 ? (
         <>
-          <Tabs tabs={[METRICS_TAB]} active={tab} onSelect={setTab} />
+          <Tabs tabs={[metricsTab]} active={tab} onSelect={setTab} />
           <EmptyState
             icon={BatteryWarning}
-            title="No packs reporting"
+            title={t('empty.noPacksTitle')}
             detail={
               snapshot.connected
-                ? 'The console is open but no pack answered the last poll. Check the link cabling and pack addressing.'
-                : 'The serial port is not open, so no pack data can be read.'
+                ? t('empty.noPacksConnected')
+                : t('empty.noPacksDisconnected')
             }
           />
         </>
@@ -191,16 +197,18 @@ export function App() {
                 ) : (
                   <EmptyState
                     icon={BatteryWarning}
-                    title="No cell readings yet"
-                    detail="Packs are present but the first per-cell sweep has not returned."
+                    title={t('empty.noCellsTitle')}
+                    detail={t('empty.noCellsDetail')}
                   />
                 )}
 
                 <div className="bed grid grid-cols-1 gap-px xl:grid-cols-[minmax(0,32rem)_minmax(0,1fr)]">
                   <Panel>
                     <PanelHead
-                      title="Pack readings"
-                      note={`every ${POLL_INTERVAL_MS / 1000}s`}
+                      title={t('panels.packReadings')}
+                      note={t('panels.everySeconds', {
+                        seconds: POLL_INTERVAL_MS / 1000,
+                      })}
                     />
                     <PanelBody>
                       <PackMetrics packs={packs} cells={snapshot.cells} />
@@ -209,15 +217,17 @@ export function App() {
 
                   <Panel>
                     <PanelHead
-                      title="Every cell"
-                      note={`${cellRows.length} cells · sortable`}
+                      title={t('panels.everyCell')}
+                      note={t('panels.cellsSortable', {
+                        count: cellRows.length,
+                      })}
                     />
                     <PanelBody>
                       {cellRows.length > 0 ? (
                         <CellTable rows={cellRows} />
                       ) : (
                         <p className="p-3 text-xs text-ink-faint">
-                          Waiting for the first per-cell sweep.
+                          {t('empty.waitingCells')}
                         </p>
                       )}
                     </PanelBody>
@@ -238,8 +248,8 @@ export function App() {
             {tab === 'lifetime' ? (
               <Panel>
                 <PanelHead
-                  title="Lifetime counters"
-                  note="cumulative since the pack left the factory"
+                  title={t('panels.lifetimeCounters')}
+                  note={t('panels.lifetimeNote')}
                 />
                 <PanelBody>
                   <PackHistory addresses={addresses} stats={snapshot.stats} />
@@ -250,11 +260,11 @@ export function App() {
             {tab === 'protection' ? (
               <Panel>
                 <PanelHead
-                  title="Protection counters"
+                  title={t('panels.protectionCounters')}
                   note={
                     trips > 0
-                      ? `${trips} counter${trips === 1 ? '' : 's'} above zero`
-                      : 'every counter at zero'
+                      ? t('panels.protectionNote', { count: trips })
+                      : t('panels.protectionNoneNote')
                   }
                 />
                 <PanelBody>
@@ -269,8 +279,8 @@ export function App() {
             {tab === 'hardware' ? (
               <Panel>
                 <PanelHead
-                  title="Firmware and hardware"
-                  note="read once, then refreshed on the slow sweep"
+                  title={t('panels.hardware')}
+                  note={t('panels.hardwareNote')}
                 />
                 <PanelBody>
                   <PackIdentity addresses={addresses} info={snapshot.info} />

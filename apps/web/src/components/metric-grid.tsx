@@ -17,6 +17,8 @@ export interface MetricCell {
 }
 
 export interface MetricRow {
+  /** Stable across languages, so switching language does not remount the table. */
+  id?: string;
   label: string;
   unit?: string;
   /** Plain-language explanation of the term, hung off the row label. */
@@ -70,7 +72,7 @@ export function MetricGrid({
         <tbody>
           {rows.map((row, rowIndex) => (
             <tr
-              key={row.label}
+              key={row.id ?? row.label}
               className={cn(
                 'group',
                 rowIndex % 2 === 1 && 'bg-panel-sunken/60',
@@ -97,7 +99,7 @@ export function MetricGrid({
               </th>
               {row.cells.map((cell, index) => (
                 <td
-                  key={`${row.label}:${columns[index] ?? index}`}
+                  key={`${row.id ?? row.label}:${columns[index] ?? index}`}
                   title={cell.title}
                   className={cn(
                     'tnum border-l border-rule px-3 py-[3px] text-right whitespace-nowrap',

@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ export function Tabs<T extends string>({
   active,
   onSelect,
 }: TabsProps<T>) {
+  const { t } = useTranslation();
   const panels = tabs.filter((entry): entry is TabDef<T> => !isLink(entry));
   const links = tabs.filter(isLink);
 
@@ -46,7 +48,7 @@ export function Tabs<T extends string>({
       {panels.length > 0 ? (
         <div
           role="tablist"
-          aria-label="Panels"
+          aria-label={t('tabs.ariaLabel')}
           className="flex items-end gap-px"
         >
           {panels.map((tab) => {

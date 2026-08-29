@@ -22,11 +22,12 @@ export function spreadSeverity(spread: number): Severity {
   return 'ok';
 }
 
-export const SPREAD_LABEL: Record<Severity, string> = {
-  ok: 'Balanced',
-  warn: 'Drifting',
-  critical: 'Out of balance',
-};
+/** The verdict is prose, so this module carries the key and the component does the translating. */
+export const SPREAD_LABEL_KEY = {
+  ok: 'spread.ok',
+  warn: 'spread.warn',
+  critical: 'spread.critical',
+} as const satisfies Record<Severity, string>;
 
 /** Anything the BMS does not call "Normal" is at least a warning. */
 export function stateSeverity(state: CellState): Severity {

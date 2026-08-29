@@ -1,5 +1,7 @@
 import type { Snapshot } from '@libs/protocol';
 
+import { i18n } from '@/i18n';
+
 export interface Health {
   connected: boolean;
   port: string | null;
@@ -32,11 +34,11 @@ export function fetchHealth(): Promise<Health> {
 /** The daemon can be unreachable, or reachable but empty; both must read as a real message. */
 export function describeFetchError(error: unknown): string {
   if (error instanceof DOMException && error.name === 'TimeoutError') {
-    return `Daemon did not answer within ${TIMEOUT_MS / 1000}s`;
+    return i18n.t('errors.timeout', { seconds: TIMEOUT_MS / 1000 });
   }
 
   if (error instanceof TypeError) {
-    return 'Cannot reach the daemon — is it running?';
+    return i18n.t('errors.unreachable');
   }
 
   return error instanceof Error ? error.message : String(error);

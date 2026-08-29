@@ -1,5 +1,6 @@
 import type { Cell, PackCells } from '@libs/protocol';
 import { Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Panel, PanelBody, PanelHead } from '@/components/ui/card';
 import {
@@ -46,28 +47,33 @@ export function CellMatrix({ packs }: { packs: PackCells[] }) {
 }
 
 function PackCellRow({ pack }: { pack: PackCells }) {
+  const { t } = useTranslation();
   const severity = spreadSeverity(pack.spread);
   const temps = tempSpread(pack.cells);
   const balancing = pack.cells.filter((cell) => cell.balancing).length;
 
   return (
     <Panel>
-      <PanelHead title={`Pack ${pack.address}`}>
+      <PanelHead title={t('grid.pack', { address: pack.address })}>
         <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-[11px] whitespace-nowrap text-ink-faint">
           <span className="tnum">
-            mean <span className="text-ink-dim">{num(pack.mean, 1)}</span> mV
+            {t('cells.mean')}{' '}
+            <span className="text-ink-dim">{num(pack.mean, 1)}</span> mV
           </span>
           <span className="tnum">
-            <span className="text-ink-dim">{pack.cells.length}</span> cells
+            <span className="text-ink-dim">{pack.cells.length}</span>{' '}
+            {t('cells.cellsCount')}
           </span>
           <span className="tnum">
-            temp spread <span className="text-ink-dim">{num(temps, 1)}</span> °C
+            {t('cells.tempSpread')}{' '}
+            <span className="text-ink-dim">{num(temps, 1)}</span> °C
           </span>
           <span className="tnum flex items-center gap-1">
             {balancing > 0 ? (
               <Activity className="size-3 text-[var(--warn)]" aria-hidden />
             ) : null}
-            <span className="text-ink-dim">{balancing}</span> balancing
+            <span className="text-ink-dim">{balancing}</span>{' '}
+            {t('cells.balancingCount')}
           </span>
           <span className="flex items-baseline gap-1.5">
             <span
@@ -80,7 +86,7 @@ function PackCellRow({ pack }: { pack: PackCells }) {
             >
               {int(pack.spread)}
             </span>
-            <span>mV spread</span>
+            <span>{t('cells.mvSpread')}</span>
             <SpreadBadge spread={pack.spread} />
           </span>
         </span>
@@ -105,6 +111,7 @@ function PackCellRow({ pack }: { pack: PackCells }) {
 }
 
 function CellTile({ cell, mean }: { cell: Cell; mean: number }) {
+  const { t } = useTranslation();
   const delta = cell.voltage - mean;
   const bucket = deviationBucket(delta);
   const extreme = Math.abs(bucket) === 4;
@@ -141,19 +148,21 @@ function CellTile({ cell, mean }: { cell: Cell; mean: number }) {
       </TooltipTrigger>
       <TooltipContent>
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold">Cell {cell.index}</span>
+          <span className="text-[11px] font-semibold">
+            {t('cells.cellNumber', { index: cell.index })}
+          </span>
           <dl className="tnum grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 text-[11px]">
-            <dt className="text-ink-dim">Voltage</dt>
+            <dt className="text-ink-dim">{t('cells.voltage')}</dt>
             <dd className="text-right font-medium">{int(cell.voltage)} mV</dd>
-            <dt className="text-ink-dim">Δ from mean</dt>
+            <dt className="text-ink-dim">{t('cells.deltaFromMean')}</dt>
             <dd className="text-right font-medium">{signed(delta, 1)} mV</dd>
-            <dt className="text-ink-dim">Temperature</dt>
+            <dt className="text-ink-dim">{t('cells.temperature')}</dt>
             <dd className="text-right font-medium">
               {num(cell.temperature, 1)} °C
             </dd>
-            <dt className="text-ink-dim">Balancing</dt>
+            <dt className="text-ink-dim">{t('cells.balancing')}</dt>
             <dd className="text-right font-medium">
-              {cell.balancing ? 'Yes' : 'No'}
+              {cell.balancing ? t('cells.yes') : t('cells.no')}
             </dd>
           </dl>
         </div>
@@ -182,10 +191,12 @@ function legendLabel(bucket: number): string {
 }
 
 function DeviationLegend() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-panel px-3 py-2 text-[11px] text-ink-dim">
       <span className="flex items-center gap-2">
-        <span>Deviation from pack mean (mV)</span>
+        <span>{t('cells.legend')}</span>
         <span className="flex items-end gap-px">
           {LEGEND_BUCKETS.map((bucket) => (
             <span key={bucket} className="flex flex-col items-center gap-0.5">
@@ -205,7 +216,7 @@ function DeviationLegend() {
             aria-hidden
           />
         </span>
-        Balancing (BMS bleeding this cell)
+        {t('cells.balancingLegend')}
       </span>
     </div>
   );

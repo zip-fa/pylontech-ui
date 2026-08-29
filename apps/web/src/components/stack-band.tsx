@@ -1,17 +1,24 @@
 import type { StackTotals } from '@libs/protocol';
 import { CircleAlert, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { num, signed, whAsKwh } from '@/lib/format';
-import { SPREAD_LABEL, spreadSeverity, type Severity } from '@/lib/severity';
+import {
+  SPREAD_LABEL_KEY,
+  spreadSeverity,
+  type Severity,
+} from '@/lib/severity';
 import { cn } from '@/lib/utils';
 
-function flowLabel(power: number): string {
+function flowKey(
+  power: number,
+): 'band.idle' | 'band.charging' | 'band.discharging' {
   if (!Number.isFinite(power) || Math.abs(power) < 1) {
-    return 'idle';
+    return 'band.idle';
   }
 
-  return power > 0 ? 'charging' : 'discharging';
+  return power > 0 ? 'band.charging' : 'band.discharging';
 }
 
 /**
@@ -19,6 +26,7 @@ function flowLabel(power: number): string {
  * whether anything is wrong stay on screen.
  */
 export function StackBand({ totals }: { totals: StackTotals }) {
+  const { t } = useTranslation();
   const soc = Number.isFinite(totals.soc)
     ? Math.min(100, Math.max(0, totals.soc))
     : 0;
@@ -28,7 +36,7 @@ export function StackBand({ totals }: { totals: StackTotals }) {
   return (
     <div className="bed grid grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
       <Kpi
-        label="Charge"
+        label={t('band.charge')}
         value={num(totals.soc, 0)}
         unit="%"
         foot={
@@ -41,52 +49,54 @@ export function StackBand({ totals }: { totals: StackTotals }) {
         }
       />
       <Kpi
-        label="Energy"
+        label={t('band.energy')}
         value={whAsKwh(totals.energyRemaining)}
         unit="kWh"
         foot={
           totals.energyNominal === null
-            ? 'nameplate unread'
-            : `of ${whAsKwh(totals.energyNominal)} nominal`
+            ? t('band.nameplateUnread')
+            : t('band.ofNominal', { value: whAsKwh(totals.energyNominal) })
         }
       />
       <Kpi
-        label="Voltage"
+        label={t('band.voltage')}
         value={num(totals.voltage, 2)}
         unit="V"
-        foot={`${totals.cellCount} cells in series`}
+        foot={t('band.cellsInSeries', { count: totals.cellCount })}
       />
       <Kpi
-        label="Current"
+        label={t('band.current')}
         value={signed(totals.current, 1)}
         unit="A"
         tone={flowing ? 'ok' : undefined}
-        foot={flowLabel(totals.power)}
+        foot={t(flowKey(totals.power))}
       />
       <Kpi
-        label="Power"
+        label={t('band.power')}
         value={signed(totals.power, 0)}
         unit="W"
         foot={
           totals.power < 0
-            ? 'out of the stack'
+            ? t('band.outOfStack')
             : totals.power > 0
-              ? 'into the stack'
-              : 'no flow'
+              ? t('band.intoStack')
+              : t('band.noFlow')
         }
       />
       <Kpi
-        label="Temperature"
+        label={t('band.temperature')}
         value={`${num(totals.tempMin, 1)}–${num(totals.tempMax, 1)}`}
         unit="°C"
-        foot={`${num(totals.tempMax - totals.tempMin, 1)} °C spread`}
+        foot={t('band.tempSpread', {
+          value: num(totals.tempMax - totals.tempMin, 1),
+        })}
       />
       <Kpi
-        label="Worst spread"
+        label={t('band.worstSpread')}
         value={num(totals.worstSpread, 0)}
         unit="mV"
         tone={spreadTone}
-        foot={SPREAD_LABEL[spreadTone].toLowerCase()}
+        foot={t(SPREAD_LABEL_KEY[spreadTone]).toLowerCase()}
       />
       <AlarmKpi
         alarm={totals.alarm}
@@ -143,6 +153,7 @@ function AlarmKpi({
   present: number;
   total: number;
 }) {
+  const { t } = useTranslation();
   const Icon = alarm ? CircleAlert : ShieldCheck;
 
   return (
@@ -152,7 +163,7 @@ function AlarmKpi({
         alarm ? 'bg-[var(--critical-soft)]' : 'bg-panel',
       )}
     >
-      <span className="silk text-ink-faint">Status</span>
+      <span className="silk text-ink-faint">{t('band.status')}</span>
       <span
         className={cn(
           'flex items-center gap-1.5 text-[15px] leading-none font-semibold',
@@ -160,10 +171,12 @@ function AlarmKpi({
         )}
       >
         <Icon className="size-4 shrink-0" aria-hidden />
-        <span className="truncate">{alarm ? 'Alarm active' : 'All clear'}</span>
+        <span className="truncate">
+          {alarm ? t('band.alarmActive') : t('band.allClear')}
+        </span>
       </span>
       <span className="tnum truncate text-[11px] text-ink-faint">
-        {present} of {total} addresses answered
+        {t('band.answered', { present, total })}
       </span>
     </div>
   );

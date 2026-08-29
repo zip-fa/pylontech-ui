@@ -1,8 +1,9 @@
 import { CircleAlert, CircleCheck, TriangleAlert } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import {
-  SPREAD_LABEL,
+  SPREAD_LABEL_KEY,
   SPREAD_PROBLEM_MV,
   SPREAD_WATCH_MV,
   spreadSeverity,
@@ -31,6 +32,7 @@ export function SpreadBadge({
   spread: number;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const severity = spreadSeverity(spread);
   const Icon = ICON[severity];
 
@@ -44,7 +46,7 @@ export function SpreadBadge({
       )}
     >
       <Icon className="size-3" aria-hidden />
-      {SPREAD_LABEL[severity]}
+      {t(SPREAD_LABEL_KEY[severity])}
     </Badge>
   );
 }
