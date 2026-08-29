@@ -1,6 +1,9 @@
 # The context is a finished tree, not a source checkout: node_modules, apps/daemon/dist and
-# apps/web/dist are produced on the runner and copied in verbatim. Nothing else is read.
+# apps/web/dist are produced on the runner and copied in verbatim. The migrations are the one
+# thing that ships as source — drizzle reads the .sql files at boot — so they are named here too.
+# Nothing else is read.
 *
 !node_modules
 !apps/daemon/dist
+!apps/daemon/migrations
 !apps/web/dist
