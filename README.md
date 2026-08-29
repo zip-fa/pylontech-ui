@@ -22,7 +22,14 @@ Individually: `npm run daemon`, `npm run web`. Then `npm run lint`, `npm run for
 One image, one process. The daemon serves the built UI from the same origin as the API, so there is
 no second container and no CORS or host configuration.
 
+The image compiles nothing: CI installs, builds and prunes on the runner, and the Dockerfile only
+copies the finished tree. Building by hand means doing the same three steps first.
+
 ```sh
+npm ci
+npm run build --workspace web
+npm ci --omit=dev
+
 docker build -t pylontech-ui .
 docker run -d --name pylontech-ui \
   -p 4300:4300 \

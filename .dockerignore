@@ -1,16 +1,19 @@
-# Everything the build does not need. Keeping node_modules out is the important one: the image
-# installs its own for the target platform, and the host's native serialport binding is the
-# wrong architecture.
-node_modules
-**/node_modules
-**/dist
+# The build context is a finished tree, not a source checkout: node_modules and apps/web/dist are
+# produced on the runner and copied in verbatim. Only what the image never reads is excluded.
 .nx
 .git
 .github
 .idea
 .vscode
+apps/web/src
+apps/web/public
+apps/web/index.html
+apps/web/vite.config.ts
+libs/protocol/src/**/*.spec.ts
 *.tsbuildinfo
 .DS_Store
 npm-debug.log
+compose.yaml
+README.md
 Dockerfile
 .dockerignore

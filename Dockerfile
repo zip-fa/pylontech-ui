@@ -2,60 +2,40 @@
 
 # One image, one process: the daemon owns the serial port, serves /api, and serves the built UI
 # from the same origin. Splitting them would need two containers sharing one exclusive tty.
+#
+# Nothing is compiled here. CI installs the workspace, builds the UI and prunes to production
+# dependencies on the runner, where the npm and Nx caches live; this file only assembles the
+# result. `docker build` therefore expects `node_modules` and `apps/web/dist` to already exist —
+# run `npm ci && npm run build --workspace web` first if you are building by hand.
 
-# ---------------------------------------------------------------------------------------------
-# deps — the full workspace install, cached on the lockfile alone
-# ---------------------------------------------------------------------------------------------
-FROM node:26-bookworm-slim AS deps
-WORKDIR /app
+FROM node:26-bookworm-slim
 
-# `npm ci` needs every workspace manifest present before it will resolve the workspace links.
-COPY package.json package-lock.json ./
-COPY apps/daemon/package.json apps/daemon/
-COPY apps/web/package.json apps/web/
-COPY libs/protocol/package.json libs/protocol/
-
-RUN --mount=type=cache,target=/root/.npm npm ci
-
-# ---------------------------------------------------------------------------------------------
-# build — compile the UI to static files
-# ---------------------------------------------------------------------------------------------
-FROM deps AS build
-COPY . .
-# Straight npm, not nx: the image has no cache to warm and no daemon to keep alive.
-RUN npm run build --workspace web
-
-# ---------------------------------------------------------------------------------------------
-# runtime — production dependencies, daemon sources, built UI
-# ---------------------------------------------------------------------------------------------
-FROM node:26-bookworm-slim AS runtime
 ENV NODE_ENV=production
+ENV TZ=UTC
 WORKDIR /app
 
 # `SerialPort.list()` shells out to udevadm; without it the adapter cannot be discovered and the
 # path would have to be hardcoded through SERIAL_PATH, which is exactly what discovery avoids.
+# Reading a tty then needs group membership, not root — `dialout` is gid 20 on Debian.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends udev \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && usermod -aG dialout node
 
-COPY package.json package-lock.json ./
-COPY apps/daemon/package.json apps/daemon/
-COPY apps/web/package.json apps/web/
-COPY libs/protocol/package.json libs/protocol/
-
-# The install is workspace-wide because npm resolves workspaces as one tree; the web app's
-# runtime deps come along, which costs a few megabytes and buys a lockfile-exact install.
-# serialport's postinstall fetches the prebuilt native binding for the image's architecture.
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
+# The only native dependency is serialport, and it ships prebuilt bindings for every platform
+# inside the package, so one installed tree serves both amd64 and arm64.
+COPY package.json ./
+COPY node_modules node_modules
 
 # The daemon runs its TypeScript directly — Node strips the types, so there is nothing to emit.
+# Each package.json comes along because npm's workspace symlinks resolve through them.
+COPY apps/daemon/package.json apps/daemon/
 COPY apps/daemon/src apps/daemon/src
+COPY libs/protocol/package.json libs/protocol/
 COPY libs/protocol/src libs/protocol/src
-COPY --from=build /app/apps/web/dist apps/web/dist
+COPY apps/web/package.json apps/web/
+COPY apps/web/dist apps/web/dist
 
-# Reading a tty needs group membership, not root. `dialout` is gid 20 on Debian; the runtime
-# user is added to it so `--device=/dev/ttyUSB0` is enough on the host side.
-RUN usermod -aG dialout node
 USER node
 
 ENV PORT=4300
