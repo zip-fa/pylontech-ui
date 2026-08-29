@@ -7,10 +7,11 @@ import {
   tableFeatures,
   useTable,
 } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown, Info } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Hint } from '@/components/ui/tooltip';
 import type { CellRow } from '@/lib/cell-rows';
 import { int, num, signed } from '@/lib/format';
 import { deviationBucket, isNormal } from '@/lib/severity';
@@ -25,7 +26,9 @@ const features = tableFeatures({
 const helper = createColumnHelper<typeof features, CellRow>();
 
 function StateCell({ state }: { state: string }) {
-  if (isNormal(state)) return <span className="text-ink-dim">ok</span>;
+  if (isNormal(state)) {
+    return <span className="text-ink-dim">ok</span>;
+  }
 
   return <Badge variant="critical">{state}</Badge>;
 }
@@ -116,6 +119,19 @@ const columns = helper.columns([
   }),
 ]);
 
+/**
+ * Only the abbreviated and coined column headers. The explanation hangs off a marker beside the
+ * label rather than off the label itself, because the header text sits inside the sort button and
+ * a button cannot contain another button.
+ */
+const HEADER_HINTS: Record<string, string> = {
+  delta:
+    "This cell's voltage minus the average of its own pack, in millivolts. Near zero is a matched cell; a cell that stays at one extreme is the one to watch.",
+  soc: 'State of charge: how full this cell is, as the BMS estimates it.',
+  coulomb:
+    "The cell's own charge counter, in milliamp-hours — the charge the BMS believes this cell is holding.",
+};
+
 const RIGHT_ALIGNED = new Set([
   'index',
   'voltage',
@@ -125,6 +141,11 @@ const RIGHT_ALIGNED = new Set([
   'soc',
   'coulomb',
 ]);
+
+/** The header is a string for every sortable column here; the id is only a fallback. */
+function headerText(header: unknown, fallback: string): string {
+  return typeof header === 'string' ? header : fallback;
+}
 
 export function CellTable({ rows }: { rows: CellRow[] }) {
   const data = useMemo(() => rows, [rows]);
@@ -161,20 +182,31 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
                       RIGHT_ALIGNED.has(header.column.id) && 'text-right',
                     )}
                   >
-                    <button
-                      type="button"
-                      onClick={header.column.getToggleSortingHandler()}
-                      className={cn(
-                        'inline-flex items-center gap-1 hover:text-ink focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
-                        sorted && 'text-ink',
-                      )}
-                    >
-                      <table.FlexRender header={header} />
-                      <Icon
-                        className={cn('size-3', !sorted && 'opacity-40')}
-                        aria-hidden
-                      />
-                    </button>
+                    <span className="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={header.column.getToggleSortingHandler()}
+                        className={cn(
+                          'inline-flex items-center gap-1 hover:text-ink focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
+                          sorted && 'text-ink',
+                        )}
+                      >
+                        <table.FlexRender header={header} />
+                        <Icon
+                          className={cn('size-3', !sorted && 'opacity-40')}
+                          aria-hidden
+                        />
+                      </button>
+                      {HEADER_HINTS[header.column.id] ? (
+                        <Hint
+                          content={HEADER_HINTS[header.column.id]}
+                          aria-label={`What ${headerText(header.column.columnDef.header, header.column.id)} means`}
+                          className="text-ink-faint no-underline hover:text-ink"
+                        >
+                          <Info className="size-3" aria-hidden />
+                        </Hint>
+                      ) : null}
+                    </span>
                   </th>
                 );
               })}

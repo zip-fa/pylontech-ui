@@ -1,5 +1,5 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import type { ComponentProps } from 'react';
+import { useRef, useState, type ComponentProps, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -23,5 +23,46 @@ export function TooltipContent({
         {...props}
       />
     </TooltipPrimitive.Portal>
+  );
+}
+
+export interface HintProps extends Omit<ComponentProps<'button'>, 'content'> {
+  /** The explanation, in plain language. */
+  content: ReactNode;
+}
+
+/**
+ * A term that carries its own definition: dotted underline on the label, explanation on hover,
+ * focus or tap. Radix opens on hover and focus only, so the tap is wired by hand — without it
+ * every explanation on the page is unreachable on a phone.
+ */
+export function Hint({ content, className, children, ...props }: HintProps) {
+  const [open, setOpen] = useState(false);
+  const openAtPress = useRef(false);
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            'cursor-help underline decoration-ink-faint decoration-dotted underline-offset-[3px] hover:decoration-ink-dim focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
+            className,
+          )}
+          {...props}
+          // Radix has already closed on pointer-down by the time the click lands, so a tap has to
+          // toggle against the state the trigger was in before the press.
+          onPointerDown={() => {
+            openAtPress.current = open;
+          }}
+          onClick={() => setOpen(!openAtPress.current)}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent collisionPadding={8} className="max-w-72 leading-relaxed">
+        {content}
+      </TooltipContent>
+    </Tooltip>
   );
 }

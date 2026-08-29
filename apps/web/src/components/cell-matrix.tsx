@@ -25,7 +25,9 @@ function tempSpread(cells: Cell[]): number {
     .map((cell) => cell.temperature)
     .filter((value) => Number.isFinite(value));
 
-  if (temps.length === 0) return Number.NaN;
+  if (temps.length === 0) {
+    return Number.NaN;
+  }
 
   return Math.max(...temps) - Math.min(...temps);
 }

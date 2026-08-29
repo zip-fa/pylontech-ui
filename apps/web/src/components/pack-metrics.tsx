@@ -9,6 +9,12 @@ export interface PackMetricsProps {
   cells: Record<number, PackCells>;
 }
 
+/** Only the abbreviations. Rows whose label already reads as English carry no explanation. */
+const HINTS: Record<string, string> = {
+  'MOSFET temperature':
+    'Temperature of the power switches that connect and disconnect the pack. They run hotter than the cells under heavy load and are protected separately from them.',
+};
+
 /** Every figure `pwr` reports, plus what `bat` adds about the cells inside each pack. */
 export function PackMetrics({ packs, cells }: PackMetricsProps) {
   const row = (
@@ -21,6 +27,7 @@ export function PackMetrics({ packs, cells }: PackMetricsProps) {
     label,
     unit,
     group,
+    hint: HINTS[label],
     cells: packs.map((pack) => ({
       value: render(pack, cells[pack.address]),
       tone: tone?.(pack, cells[pack.address]),

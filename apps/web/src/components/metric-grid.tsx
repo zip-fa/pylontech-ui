@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { Hint } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { Severity } from '@/lib/severity';
 
@@ -18,6 +19,8 @@ export interface MetricCell {
 export interface MetricRow {
   label: string;
   unit?: string;
+  /** Plain-language explanation of the term, hung off the row label. */
+  hint?: ReactNode;
   /** One entry per column, in column order. */
   cells: MetricCell[];
   /** Draws a rule above the row, so a block of related metrics reads as a block. */
@@ -81,7 +84,11 @@ export function MetricGrid({
                   rowIndex % 2 === 1 ? 'bg-panel-sunken' : 'bg-panel',
                 )}
               >
-                {row.label}
+                {row.hint ? (
+                  <Hint content={row.hint}>{row.label}</Hint>
+                ) : (
+                  row.label
+                )}
                 {row.unit ? (
                   <span className="ml-1 text-[10px] text-ink-faint">
                     {row.unit}

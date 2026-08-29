@@ -16,6 +16,26 @@ function keysAcross(
   return [...new Set(stats.flatMap((stat) => Object.keys(pick(stat))))].sort();
 }
 
+/** Only the abbreviations. Rows whose label already reads as English carry no explanation. */
+const HINTS: Record<string, string> = {
+  'SOH recalculations':
+    'How many times the pack has recalculated its own state of health. Zero here explains a state-of-health figure that never moves.',
+};
+
+/** The `Cnt` family, spelled out. Firmware may report others; those fall back to the family text. */
+const CONDITION_TERMS: Record<string, string> = {
+  HT: 'ran hotter than its normal band',
+  LT: 'ran colder than its normal band',
+  HV: 'sat above its normal voltage band',
+  LV: 'sat below its normal voltage band',
+};
+
+function conditionHint(key: string): string {
+  const term = CONDITION_TERMS[key.toUpperCase()];
+
+  return `${term ? `How many times this pack has ${term}.` : 'A condition counter the firmware keeps under this name.'} It counts the condition being seen, not a disconnection — times the BMS actually cut the pack out are on the Protection tab.`;
+}
+
 export function PackHistory({ addresses, stats }: PackHistoryProps) {
   const present = addresses
     .map((address) => stats[address])
@@ -31,6 +51,7 @@ export function PackHistory({ addresses, stats }: PackHistoryProps) {
     label,
     unit,
     group,
+    hint: HINTS[label],
     cells: addresses.map((address) => ({
       value: render(stats[address]),
       tone: tone?.(stats[address]),
@@ -87,15 +108,16 @@ export function PackHistory({ addresses, stats }: PackHistoryProps) {
 
   if (conditions.length > 0) {
     rows.push(
-      ...conditions.map((key, index) =>
-        row(
+      ...conditions.map((key, index) => ({
+        ...row(
           `${key} events`,
           undefined,
           (s) => count(s?.counters[key] ?? 0),
           (s) => ((s?.counters[key] ?? 0) > 0 ? 'warn' : 'ok'),
           index === 0,
         ),
-      ),
+        hint: conditionHint(key),
+      })),
     );
   }
 
@@ -113,6 +135,33 @@ export interface PackFaultsProps {
   stats: Record<number, PackStat>;
 }
 
+/**
+ * Standard BMS shorthand, as the console prints it. Anything the firmware reports under a name
+ * that is not here still gets the family explanation rather than a guess at the abbreviation.
+ */
+const FAULT_TERMS: Record<string, string> = {
+  'BAT OV': "the whole pack's voltage rose above its limit on charge",
+  'BAT UV': "the whole pack's voltage fell below its limit on discharge",
+  'CELL OV': 'a single cell rose above its voltage limit on charge',
+  'CELL UV': 'a single cell fell below its voltage limit on discharge',
+  COC: 'the charging current went over the limit',
+  DOC: 'the discharging current went over the limit',
+  SC: 'a short circuit was seen across the output',
+  COTP: 'the cells were too hot to charge safely',
+  CUTP: 'the cells were too cold to charge safely',
+  DOTP: 'the cells were too hot to discharge safely',
+  DUTP: 'the cells were too cold to discharge safely',
+  'MOS OTP': 'the power switches ran too hot',
+  'ENV OTP': 'the air around the pack was too hot',
+  'ENV UTP': 'the air around the pack was too cold',
+};
+
+function faultHint(key: string): string {
+  const term = FAULT_TERMS[key.toUpperCase()];
+
+  return `${term ? `Times the BMS cut this pack out of the circuit because ${term}.` : `Times the BMS cut this pack out of the circuit, under the name the firmware gives this protection ("${key}").`} The count runs from the factory and never resets, so a figure above zero may be years old rather than a fault happening now.`;
+}
+
 /** Every protection counter the pack keeps. All zero is the answer you want here. */
 export function PackFaultCounters({ addresses, stats }: PackFaultsProps) {
   const present = addresses
@@ -120,10 +169,13 @@ export function PackFaultCounters({ addresses, stats }: PackFaultsProps) {
     .filter((stat): stat is PackStat => Boolean(stat));
   const keys = keysAcross(present, (s) => s.faults);
 
-  if (keys.length === 0) return null;
+  if (keys.length === 0) {
+    return null;
+  }
 
   const rows: MetricRow[] = keys.map((key) => ({
     label: key,
+    hint: faultHint(key),
     cells: addresses.map((address) => {
       const value = stats[address]?.faults[key];
 

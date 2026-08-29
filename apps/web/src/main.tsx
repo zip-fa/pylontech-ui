@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from '@/App';
 import { QueryDevtools } from '@/components/devtools';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { queryClient } from '@/lib/query-client';
 
 import '@/index.css';
@@ -17,7 +18,9 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <TooltipProvider delayDuration={80}>
+        <App />
+      </TooltipProvider>
       <QueryDevtools />
     </QueryClientProvider>
   </StrictMode>,

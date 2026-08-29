@@ -30,7 +30,9 @@ function commonNameplateAh(
 ): number | null {
   const rated = addresses.map((address) => nameplateAh(info[address]));
 
-  if (rated.length === 0 || rated.some((value) => value === null)) return null;
+  if (rated.length === 0 || rated.some((value) => value === null)) {
+    return null;
+  }
 
   return rated.every((value) => value === rated[0]) ? rated[0] : null;
 }
@@ -48,7 +50,9 @@ function identifyEuroPack(
   const matches = addresses.filter((address) => {
     const stat = stats[address];
 
-    if (!stat) return false;
+    if (!stat) {
+      return false;
+    }
 
     const lifetimeAh = stat.dischargeCapacity / 1000;
     const closeOnCapacity =
@@ -63,9 +67,13 @@ function identifyEuroPack(
 }
 
 function healthSeverity(percent: number): Severity {
-  if (percent >= 90) return 'ok';
+  if (percent >= 90) {
+    return 'ok';
+  }
 
-  if (percent >= 80) return 'warn';
+  if (percent >= 80) {
+    return 'warn';
+  }
 
   return 'critical';
 }
@@ -297,14 +305,18 @@ function PackWear({
       (_s, address) => {
         const rated = nameplateAh(info[address]);
 
-        if (!euro || address !== attached || !rated) return '—';
+        if (!euro || address !== attached || !rated) {
+          return '—';
+        }
 
         return num((euro.remainCapacity / rated) * 100, 1);
       },
       (_s, address) => {
         const rated = nameplateAh(info[address]);
 
-        if (!euro || address !== attached || !rated) return 'ok';
+        if (!euro || address !== attached || !rated) {
+          return 'ok';
+        }
 
         return healthSeverity((euro.remainCapacity / rated) * 100);
       },
@@ -323,7 +335,9 @@ function PackWear({
     row('Equivalent full cycles', undefined, (s, address) => {
       const rated = nameplateAh(info[address]);
 
-      if (!s || !rated) return '—';
+      if (!s || !rated) {
+        return '—';
+      }
 
       return num(s.dischargeCapacity / 1000 / rated, 1);
     }),

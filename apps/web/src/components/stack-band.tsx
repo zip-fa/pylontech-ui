@@ -7,7 +7,9 @@ import { SPREAD_LABEL, spreadSeverity, type Severity } from '@/lib/severity';
 import { cn } from '@/lib/utils';
 
 function flowLabel(power: number): string {
-  if (!Number.isFinite(power) || Math.abs(power) < 1) return 'idle';
+  if (!Number.isFinite(power) || Math.abs(power) < 1) {
+    return 'idle';
+  }
 
   return power > 0 ? 'charging' : 'discharging';
 }
