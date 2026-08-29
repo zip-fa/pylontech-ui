@@ -8,7 +8,9 @@ const Panel = lazy(() =>
 
 /** Dev-only: the import stays in its own chunk that a production bundle never loads. */
 export function QueryDevtools() {
-  if (!import.meta.env.DEV) return null;
+  if (!import.meta.env.DEV) {
+    return null;
+  }
 
   return (
     <Suspense fallback={null}>

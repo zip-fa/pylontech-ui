@@ -211,4 +211,15 @@ export default [
   },
 
   eslintConfigPrettier,
+
+  // Braces on every control-flow body. Jabka never wrote this down, but its TypeScript is 98.6%
+  // braced and the exceptions all sit in one throwaway benchmark directory, so the convention is
+  // real and only ever went unenforced. This has to sit after eslint-config-prettier, which
+  // disables `curly` wholesale even though only its `multi-line` option ever fights Prettier.
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
+    rules: {
+      curly: ['error', 'all'],
+    },
+  },
 ];

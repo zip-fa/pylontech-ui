@@ -41,7 +41,9 @@ const USB_SERIAL = /usbserial|ttyUSB|usbmodem/i;
  * so the path is discovered rather than configured. `SERIAL_PATH` still wins when set.
  */
 export async function resolveSerialPath(): Promise<string | null> {
-  if (config.serialPath) return config.serialPath;
+  if (config.serialPath) {
+    return config.serialPath;
+  }
 
   const ports = await SerialPort.list();
   const ftdi = ports.find(

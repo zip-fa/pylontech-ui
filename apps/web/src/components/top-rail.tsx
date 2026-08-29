@@ -123,7 +123,9 @@ function StackName({ totals }: { totals: StackTotals | null }) {
       `${totals.presentCount} pack${totals.presentCount === 1 ? '' : 's'}`,
     );
 
-    if (totals.cellCount > 0) parts.push(`${totals.cellCount} cells`);
+    if (totals.cellCount > 0) {
+      parts.push(`${totals.cellCount} cells`);
+    }
 
     if (totals.energyNominal !== null) {
       const partial =

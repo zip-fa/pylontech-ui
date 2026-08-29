@@ -30,10 +30,16 @@ export interface Frame {
 export function takeFrame(buffer: string): Frame | null {
   const end = buffer.indexOf(TERMINATOR);
 
-  if (end < 0) return null;
+  if (end < 0) {
+    return null;
+  }
+
   const prompt = buffer.indexOf(PROMPT, end + TERMINATOR.length);
 
-  if (prompt < 0) return null;
+  if (prompt < 0) {
+    return null;
+  }
+
   const cut = prompt + PROMPT.length;
 
   return { frame: buffer.slice(0, cut), rest: buffer.slice(cut) };
@@ -51,7 +57,9 @@ export function echoOf(frame: string): string {
       : line;
     const trimmed = normalise(text);
 
-    if (trimmed) return trimmed;
+    if (trimmed) {
+      return trimmed;
+    }
   }
 
   return '';
@@ -69,12 +77,17 @@ export function cleanResponse(raw: string, command: string): string {
         ? line.trim().slice(PROMPT.length).trim()
         : line.trim();
 
-      if (normalise(t) === normalise(command)) return false;
-
-      if (t === '@' || t === TERMINATOR || t === PROMPT || t === '')
+      if (normalise(t) === normalise(command)) {
         return false;
+      }
 
-      if (t.startsWith(PAGINATION)) return false;
+      if (t === '@' || t === TERMINATOR || t === PROMPT || t === '') {
+        return false;
+      }
+
+      if (t.startsWith(PAGINATION)) {
+        return false;
+      }
 
       return true;
     })

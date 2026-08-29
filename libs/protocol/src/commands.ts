@@ -45,10 +45,14 @@ const NEVER = new Set<string>([
 export function isCommandAllowed(line: string): boolean {
   const verb = line.trim().split(/\s+/)[0]?.toLowerCase() ?? '';
 
-  if (NEVER.has(verb)) return false;
+  if (NEVER.has(verb)) {
+    return false;
+  }
 
   // `time` with arguments sets the RTC; only the bare read form is allowed through.
-  if (verb === 'time' && line.trim().split(/\s+/).length > 1) return false;
+  if (verb === 'time' && line.trim().split(/\s+/).length > 1) {
+    return false;
+  }
 
   return ALLOWED.has(verb);
 }

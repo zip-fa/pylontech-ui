@@ -16,7 +16,9 @@ function readStored(): Theme | null {
 
 export function useTheme(): [Theme, () => void] {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof document === 'undefined') return 'light';
+    if (typeof document === 'undefined') {
+      return 'light';
+    }
 
     return document.documentElement.classList.contains('dark')
       ? 'dark'
@@ -33,7 +35,10 @@ export function useTheme(): [Theme, () => void] {
   }, [theme]);
 
   useEffect(() => {
-    if (readStored()) return;
+    if (readStored()) {
+      return;
+    }
+
     const query = matchMedia('(prefers-color-scheme: dark)');
     const onChange = (event: MediaQueryListEvent) =>
       setTheme(event.matches ? 'dark' : 'light');

@@ -28,10 +28,16 @@ function keyValues(text: string): Map<string, string> {
   for (const line of text.split('\n')) {
     const idx = line.indexOf(':');
 
-    if (idx < 0) continue;
+    if (idx < 0) {
+      continue;
+    }
+
     const key = line.slice(0, idx).trim();
 
-    if (!key) continue;
+    if (!key) {
+      continue;
+    }
+
     map.set(key, line.slice(idx + 1).trim());
   }
 
@@ -44,7 +50,10 @@ export function parsePwr(text: string): PackSummary[] {
   for (const line of text.split('\n')) {
     const f = line.trim().split(/\s+/);
 
-    if (!/^\d+$/.test(f[0] ?? '')) continue;
+    if (!/^\d+$/.test(f[0] ?? '')) {
+      continue;
+    }
+
     const address = num(f[0]);
 
     if (line.includes('Absent')) {
@@ -74,7 +83,9 @@ export function parsePwr(text: string): PackSummary[] {
       continue;
     }
 
-    if (f.length < 23) continue;
+    if (f.length < 23) {
+      continue;
+    }
 
     packs.push({
       address,
@@ -110,7 +121,10 @@ export function parseBat(text: string, address: number): PackCells {
   for (const line of text.split('\n')) {
     const f = line.trim().split(/\s+/);
 
-    if (!/^\d+$/.test(f[0] ?? '') || f.length < 11) continue;
+    if (!/^\d+$/.test(f[0] ?? '') || f.length < 11) {
+      continue;
+    }
+
     cells.push({
       index: num(f[0]),
       voltage: num(f[1]),
@@ -140,7 +154,9 @@ const get = (kv: Map<string, string>, ...keys: string[]): string => {
   for (const key of keys) {
     const value = kv.get(key);
 
-    if (value !== undefined) return value;
+    if (value !== undefined) {
+      return value;
+    }
   }
 
   return '';
@@ -199,8 +215,9 @@ export function parseStat(text: string, address: number): PackStat {
     }
 
     // The `Cnt` family counts operating conditions (hot, cold, low voltage), not trips.
-    if (/(^|\s)Cnt\.?$/.test(key))
+    if (/(^|\s)Cnt\.?$/.test(key)) {
       counters[key.replace(/\s*Cnt\.?$/, '')] = num(value);
+    }
   }
 
   return {
@@ -235,11 +252,16 @@ export function parseSpecification(
 ): { volts: number; ampHours: number; wattHours: number } | null {
   const match = /([\d.]+)\s*V\s*\/\s*([\d.]+)\s*AH/i.exec(specification ?? '');
 
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
+
   const volts = Number(match[1]);
   const ampHours = Number(match[2]);
 
-  if (!Number.isFinite(volts) || !Number.isFinite(ampHours)) return null;
+  if (!Number.isFinite(volts) || !Number.isFinite(ampHours)) {
+    return null;
+  }
 
   return { volts, ampHours, wattHours: volts * ampHours };
 }

@@ -100,7 +100,10 @@ export class Poller {
 
   /** One console at seconds per command: a sweep that overruns its interval must not stack on itself. */
   private async once(key: string, run: () => Promise<void>): Promise<void> {
-    if (this.running.has(key)) return;
+    if (this.running.has(key)) {
+      return;
+    }
+
     this.running.add(key);
     try {
       await run();
@@ -110,7 +113,9 @@ export class Poller {
   }
 
   stop(): void {
-    for (const timer of this.timers.splice(0)) clearInterval(timer);
+    for (const timer of this.timers.splice(0)) {
+      clearInterval(timer);
+    }
   }
 
   private async pollPwr(): Promise<void> {
@@ -130,7 +135,9 @@ export class Poller {
 
   /** Whatever `pwr` last reported as populated. Empty until the first sweep lands. */
   private get presentAddresses(): number[] {
-    if (config.addresses) return config.addresses;
+    if (config.addresses) {
+      return config.addresses;
+    }
 
     return this.snapshot.packs.filter((p) => p.present).map((p) => p.address);
   }
@@ -160,7 +167,10 @@ export class Poller {
     const info: Record<number, PackInfo> = { ...this.snapshot.info };
 
     for (const address of this.presentAddresses) {
-      if (info[address]) continue;
+      if (info[address]) {
+        continue;
+      }
+
       try {
         info[address] = parseInfo(
           await this.console.send(`info ${address}`),

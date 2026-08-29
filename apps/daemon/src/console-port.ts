@@ -57,15 +57,19 @@ export class ConsolePort {
   }
 
   async open(): Promise<void> {
-    if (this.port?.isOpen) return;
+    if (this.port?.isOpen) {
+      return;
+    }
 
     try {
       this.path = await resolveSerialPath();
 
-      if (!this.path)
+      if (!this.path) {
         throw new Error(
           'no usb serial adapter found; set SERIAL_PATH to choose one',
         );
+      }
+
       const path = this.path;
 
       await new Promise<void>((resolve, reject) => {
@@ -134,12 +138,15 @@ export class ConsolePort {
       this.draining ||
       !this.queue.length ||
       !this.port?.isOpen
-    )
+    ) {
       return;
+    }
 
     const item = this.queue.shift();
 
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     this.active = item;
     this.buffer = '';
@@ -163,7 +170,9 @@ export class ConsolePort {
       return;
     }
 
-    if (!this.active) return;
+    if (!this.active) {
+      return;
+    }
 
     if (
       needsPage(this.buffer, this.pagesAnswered) &&
@@ -206,7 +215,10 @@ export class ConsolePort {
   private fail(error: Error): void {
     const item = this.active;
 
-    if (this.timer) clearTimeout(this.timer);
+    if (this.timer) {
+      clearTimeout(this.timer);
+    }
+
     this.timer = null;
     this.active = null;
     this.lastError = error.message;
@@ -216,7 +228,10 @@ export class ConsolePort {
   }
 
   private settle(): void {
-    if (this.timer) clearTimeout(this.timer);
+    if (this.timer) {
+      clearTimeout(this.timer);
+    }
+
     this.timer = null;
     this.active = null;
     queueMicrotask(() => this.pump());
@@ -227,18 +242,25 @@ export class ConsolePort {
    * otherwise be read as the answer to whatever command runs next.
    */
   private async drain(timeoutMs: number, wake: boolean): Promise<boolean> {
-    if (!this.port?.isOpen) return false;
+    if (!this.port?.isOpen) {
+      return false;
+    }
 
     this.draining = true;
     this.buffer = '';
 
-    if (wake) this.port.write('\r');
+    if (wake) {
+      this.port.write('\r');
+    }
 
     const sawPrompt = await new Promise<boolean>((resolve) => {
       const finish = (value: boolean): void => {
         clearTimeout(timer);
 
-        if (nudge) clearInterval(nudge);
+        if (nudge) {
+          clearInterval(nudge);
+        }
+
         this.notify = null;
         this.draining = false;
         this.buffer = '';
@@ -264,6 +286,8 @@ export class ConsolePort {
     this.connected = false;
     this.lastError = reason;
     this.fail(new Error(reason));
-    for (const item of this.queue.splice(0)) item.reject(new Error(reason));
+    for (const item of this.queue.splice(0)) {
+      item.reject(new Error(reason));
+    }
   }
 }

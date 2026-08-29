@@ -14,7 +14,9 @@ async function getJson<T>(path: string): Promise<T> {
     headers: { accept: 'application/json' },
   });
 
-  if (!response.ok) throw new Error(`${path} responded ${response.status}`);
+  if (!response.ok) {
+    throw new Error(`${path} responded ${response.status}`);
+  }
 
   return (await response.json()) as T;
 }
