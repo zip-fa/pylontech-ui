@@ -8,7 +8,6 @@ import {
   useTable,
 } from '@tanstack/react-table';
 import type { ParseKeys, TFunction } from 'i18next';
-import { ArrowDown, ArrowUp, ChevronsUpDown, Info } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,7 +31,7 @@ function StateCell({ state }: { state: string }) {
   const { t } = useTranslation();
 
   if (isNormal(state)) {
-    return <span className="text-ink-dim">{t('cells.ok')}</span>;
+    return <span className="text-ink-faint">{t('cells.ok')}</span>;
   }
 
   return <Badge variant="critical">{state}</Badge>;
@@ -43,7 +42,9 @@ const buildColumns = (t: TFunction) =>
     helper.accessor('pack', {
       header: t('cells.pack'),
       sortFn: 'basic',
-      cell: (info) => <span className="font-semibold">#{info.getValue()}</span>,
+      cell: (info) => (
+        <span className="font-medium text-ink">#{info.getValue()}</span>
+      ),
     }),
     helper.accessor('index', {
       header: t('cells.cell'),
@@ -64,8 +65,8 @@ const buildColumns = (t: TFunction) =>
         return (
           <span
             className={cn(
-              bucket >= 4 && 'font-semibold text-[var(--critical)]',
-              bucket === 3 && 'text-[var(--warn)]',
+              bucket >= 4 && 'font-medium text-critical',
+              bucket === 3 && 'text-warn',
             )}
           >
             {signed(info.getValue(), 1)} mV
@@ -100,7 +101,7 @@ const buildColumns = (t: TFunction) =>
         info.getValue() ? (
           <Badge variant="warn">{t('cells.balancingBadge')}</Badge>
         ) : (
-          <span className="text-ink-dim">—</span>
+          <span className="text-ink-faint">—</span>
         ),
     }),
     helper.accessor('baseState', {
@@ -159,19 +160,15 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
 
   return (
     <div className="max-h-[28rem] overflow-auto">
-      <table className="w-full min-w-[900px] border-collapse text-xs">
+      <table className="w-full min-w-[900px] border-collapse text-[12px]">
         <thead className="sticky top-0 z-10 bg-panel">
           {table.getHeaderGroups().map((group) => (
-            <tr key={group.id} className="border-b">
+            <tr key={group.id} className="border-b border-rule">
               {group.headers.map((header) => {
                 const hint = HEADER_HINTS[header.column.id];
                 const sorted = header.column.getIsSorted();
-                const Icon =
-                  sorted === 'asc'
-                    ? ArrowUp
-                    : sorted === 'desc'
-                      ? ArrowDown
-                      : ChevronsUpDown;
+                const glyph =
+                  sorted === 'asc' ? '↑' : sorted === 'desc' ? '↓' : '↕';
 
                 return (
                   <th
@@ -185,7 +182,7 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
                           : 'none'
                     }
                     className={cn(
-                      'px-2 py-1.5 text-left text-[10px] font-medium tracking-wider text-ink-dim uppercase',
+                      'silk px-2 py-2 text-left whitespace-nowrap',
                       RIGHT_ALIGNED.has(header.column.id) && 'text-right',
                     )}
                   >
@@ -194,15 +191,20 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
                         type="button"
                         onClick={header.column.getToggleSortingHandler()}
                         className={cn(
-                          'inline-flex items-center gap-1 hover:text-ink focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
+                          'inline-flex items-center gap-1 hover:text-ink focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
                           sorted && 'text-ink',
                         )}
                       >
                         <table.FlexRender header={header} />
-                        <Icon
-                          className={cn('size-3', !sorted && 'opacity-40')}
+                        <span
+                          className={cn(
+                            'text-[10px]',
+                            sorted ? 'text-accent' : 'text-ink-faint',
+                          )}
                           aria-hidden
-                        />
+                        >
+                          {glyph}
+                        </span>
                       </button>
                       {hint ? (
                         <Hint
@@ -213,9 +215,9 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
                               header.column.id,
                             ),
                           })}
-                          className="text-ink-faint no-underline hover:text-ink"
+                          className="text-ink-faint no-underline hover:text-accent"
                         >
-                          <Info className="size-3" aria-hidden />
+                          <span aria-hidden>?</span>
                         </Hint>
                       ) : null}
                     </span>
@@ -227,15 +229,12 @@ export function CellTable({ rows }: { rows: CellRow[] }) {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-b last:border-0 hover:bg-panel-sunken"
-            >
+            <tr key={row.id} className="hover:bg-panel-sunken">
               {row.getAllCells().map((cell) => (
                 <td
                   key={cell.id}
                   className={cn(
-                    'px-2 py-1 align-middle',
+                    'px-2 py-[3px] align-middle whitespace-nowrap',
                     RIGHT_ALIGNED.has(cell.column.id) && 'tnum text-right',
                   )}
                 >

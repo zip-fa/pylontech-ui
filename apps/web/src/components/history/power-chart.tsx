@@ -93,7 +93,7 @@ export function PowerChart({ series }: { series: StackSeries }) {
               <stop offset={split} stopColor="var(--series-out)" />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="2 3" />
+          <CartesianGrid vertical={false} strokeDasharray="1 3" />
           <XAxis
             dataKey="at"
             type="number"

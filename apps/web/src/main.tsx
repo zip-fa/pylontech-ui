@@ -8,6 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import '@/i18n';
 import { queryClient } from '@/lib/query-client';
 
+import '@fontsource-variable/jetbrains-mono';
 import '@/index.css';
 
 const container = document.getElementById('root');

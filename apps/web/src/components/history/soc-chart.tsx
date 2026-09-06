@@ -57,7 +57,7 @@ export function SocChart({ series }: { series: StackSeries }) {
               />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="2 3" />
+          <CartesianGrid vertical={false} strokeDasharray="1 3" />
           <XAxis
             dataKey="at"
             type="number"

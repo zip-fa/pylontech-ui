@@ -5,9 +5,9 @@ import { cn } from '@/lib/utils';
 import type { Severity } from '@/lib/severity';
 
 const TONE_CLASS: Record<Severity, string> = {
-  ok: '',
-  warn: 'text-[var(--warn)]',
-  critical: 'text-[var(--critical)] font-semibold',
+  ok: 'text-ink',
+  warn: 'text-warn',
+  critical: 'text-critical font-medium',
 };
 
 export interface MetricCell {
@@ -51,10 +51,10 @@ export function MetricGrid({
     <div className="overflow-x-auto">
       <table className="w-full min-w-max border-collapse text-[12px]">
         <thead>
-          <tr>
+          <tr className="border-b border-rule">
             <th
               scope="col"
-              className="silk sticky left-0 z-10 bg-panel py-1.5 pr-4 pl-3 text-left"
+              className="silk sticky left-0 z-10 bg-panel py-2 pr-6 pl-3 text-left"
             >
               {corner}
             </th>
@@ -62,7 +62,7 @@ export function MetricGrid({
               <th
                 scope="col"
                 key={column}
-                className="border-l border-rule px-3 py-1.5 text-right text-[11px] font-semibold whitespace-nowrap text-ink-dim"
+                className="silk px-3 py-2 text-right whitespace-nowrap text-ink-dim"
               >
                 {column}
               </th>
@@ -70,21 +70,17 @@ export function MetricGrid({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, rowIndex) => (
+          {rows.map((row) => (
             <tr
               key={row.id ?? row.label}
               className={cn(
-                'group',
-                rowIndex % 2 === 1 && 'bg-panel-sunken/60',
-                row.group && 'border-t border-rule',
+                'group hover:bg-panel-sunken',
+                row.group && 'border-t border-dashed border-rule',
               )}
             >
               <th
                 scope="row"
-                className={cn(
-                  'sticky left-0 z-10 py-[3px] pr-4 pl-3 text-left font-normal whitespace-nowrap text-ink-dim',
-                  rowIndex % 2 === 1 ? 'bg-panel-sunken' : 'bg-panel',
-                )}
+                className="caps sticky left-0 z-10 bg-panel py-[3px] pr-6 pl-3 text-left text-[11px] font-normal whitespace-nowrap text-ink-dim group-hover:bg-panel-sunken"
               >
                 {row.hint ? (
                   <Hint content={row.hint}>{row.label}</Hint>
@@ -92,7 +88,7 @@ export function MetricGrid({
                   row.label
                 )}
                 {row.unit ? (
-                  <span className="ml-1 text-[10px] text-ink-faint">
+                  <span className="ml-1.5 text-[10px] tracking-normal text-ink-faint normal-case">
                     {row.unit}
                   </span>
                 ) : null}
@@ -102,7 +98,7 @@ export function MetricGrid({
                   key={`${row.id ?? row.label}:${columns[index] ?? index}`}
                   title={cell.title}
                   className={cn(
-                    'tnum border-l border-rule px-3 py-[3px] text-right whitespace-nowrap',
+                    'tnum px-3 py-[3px] text-right whitespace-nowrap',
                     TONE_CLASS[cell.tone ?? 'ok'],
                   )}
                 >

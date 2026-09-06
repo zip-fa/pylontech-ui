@@ -118,7 +118,7 @@ export function ChartTooltipContent({
   }
 
   return (
-    <div className="min-w-36 border border-rule-strong bg-panel px-2 py-1.5 shadow-sm">
+    <div className="min-w-36 border border-rule-strong bg-panel px-2 py-1.5">
       {label !== undefined ? (
         <div className="silk mb-1 text-ink-dim">
           {labelFormatter ? labelFormatter(label) : label}
@@ -134,7 +134,7 @@ export function ChartTooltipContent({
             <div key={key} className="flex items-center gap-2 text-[11px]">
               <span
                 aria-hidden
-                className="size-2 shrink-0 rounded-[1px]"
+                className="size-2 shrink-0"
                 style={{
                   background: entry.color ?? `var(--color-${key})`,
                 }}
@@ -177,7 +177,7 @@ export function ChartLegendContent({ payload = [] }: ChartLegendContentProps) {
           >
             <span
               aria-hidden
-              className="size-2 shrink-0 rounded-[1px]"
+              className="size-2 shrink-0"
               style={{ background: entry.color ?? `var(--color-${key})` }}
             />
             {series.label}

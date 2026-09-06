@@ -17,7 +17,7 @@ export function TooltipContent({
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          'z-50 rounded-sm border border-rule-strong bg-panel px-2.5 py-2 text-xs text-ink shadow-lg',
+          'z-50 border border-rule-strong bg-panel px-2.5 py-2 text-[11px] text-ink',
           className,
         )}
         {...props}
@@ -46,7 +46,7 @@ export function Hint({ content, className, children, ...props }: HintProps) {
         <button
           type="button"
           className={cn(
-            'cursor-help underline decoration-ink-faint decoration-dotted underline-offset-[3px] hover:decoration-ink-dim focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
+            'cursor-help text-left [letter-spacing:inherit] [text-transform:inherit] underline decoration-ink-faint decoration-dotted underline-offset-[3px] hover:decoration-accent focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
             className,
           )}
           {...props}
@@ -60,7 +60,10 @@ export function Hint({ content, className, children, ...props }: HintProps) {
           {children}
         </button>
       </TooltipTrigger>
-      <TooltipContent collisionPadding={8} className="max-w-72 leading-relaxed">
+      <TooltipContent
+        collisionPadding={8}
+        className="max-w-72 leading-relaxed tracking-normal normal-case"
+      >
         {content}
       </TooltipContent>
     </Tooltip>

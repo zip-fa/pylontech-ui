@@ -3,16 +3,17 @@ import type { ComponentProps } from 'react';
 
 import { cn } from '@/lib/utils';
 
+/** A boxed word. Outline only, so it sits on the page like a stamp rather than a button. */
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-sm px-1.5 py-px text-[11px] leading-[1.4] font-semibold tracking-[0.06em] uppercase whitespace-nowrap',
+  'inline-flex h-[18px] items-center gap-1 border px-1.5 text-[10px] leading-none font-medium tracking-[0.06em] uppercase whitespace-nowrap',
   {
     variants: {
       variant: {
-        default: 'bg-panel-sunken text-ink-dim',
-        outline: 'border border-rule text-ink-faint',
-        ok: 'bg-[var(--ok-soft)] text-[var(--ok)]',
-        warn: 'bg-[var(--warn-soft)] text-[var(--warn)]',
-        critical: 'bg-[var(--critical-soft)] text-[var(--critical)]',
+        default: 'border-rule text-ink-dim',
+        outline: 'border-rule text-ink-faint',
+        ok: 'border-ok/60 bg-ok-soft text-ok',
+        warn: 'border-warn/60 bg-warn-soft text-warn',
+        critical: 'border-critical/70 bg-critical-soft text-critical',
       },
     },
     defaultVariants: { variant: 'default' },

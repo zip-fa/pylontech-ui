@@ -1,8 +1,8 @@
 import type { Snapshot, StackTotals } from '@libs/protocol';
-import { Moon, RefreshCw, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { POLL_INTERVAL_MS } from '@/hooks/use-snapshot';
 import { useLanguage } from '@/hooks/use-language';
 import { LANGUAGE_NAMES, LANGUAGES } from '@/i18n';
 import type { Health } from '@/lib/api';
@@ -20,8 +20,8 @@ export interface TopRailProps {
 }
 
 /**
- * One rail carrying identity and link state. Both belong at the top because both answer the same
- * first question: is what I am about to read actually current, and whose readings are these.
+ * One line carrying identity and link state, the two answers to the first question anyone asks
+ * of a readout: whose figures are these, and are they current.
  */
 export function TopRail({
   snapshot,
@@ -44,73 +44,71 @@ export function TopRail({
   const stale = age !== null && age > 15;
 
   return (
-    <div className="sticky top-0 z-30 border-b border-rule bg-ground/95 backdrop-blur">
-      <div className="flex h-11 items-center gap-x-5 gap-y-1 px-3">
+    <>
+      <div className="flex h-10 items-center gap-3 px-3">
         <StackName totals={snapshot?.totals ?? null} />
 
-        <span className="ml-auto flex items-center gap-2 whitespace-nowrap">
-          <span
-            className={cn(
-              'size-2 rounded-full',
-              connected ? 'bg-[var(--ok)]' : 'bg-[var(--critical)]',
-            )}
-            aria-hidden
-          />
-          <span
-            className={cn(
-              'text-[12px] font-semibold',
-              connected ? 'text-ink' : 'text-[var(--critical)]',
-            )}
-          >
-            {connected ? t('rail.connected') : t('rail.disconnected')}
-          </span>
-          <code className="rounded-sm bg-panel-sunken px-1.5 py-0.5 text-[11px] text-ink-dim">
-            {port ?? t('rail.noPort')}
-          </code>
-        </span>
+        <span className="leader hidden md:block" aria-hidden />
 
-        <span className="hidden items-baseline gap-1.5 text-[11px] whitespace-nowrap text-ink-faint sm:flex">
-          <span
-            className={cn('tnum text-ink-dim', stale && 'text-[var(--warn)]')}
-          >
+        <span className="tnum hidden items-baseline gap-2 text-[11px] whitespace-nowrap sm:flex">
+          <span className={cn('text-ink', stale && 'text-warn')}>
             {clockTime(snapshot?.updatedAt ?? null)}
           </span>
-          <span className={cn(stale && 'text-[var(--warn)]')}>
+          <span className={cn('text-ink-faint', stale && 'text-warn')}>
             {ageLabel(age)}
           </span>
         </span>
 
-        <div className="flex items-center gap-1">
+        <span className="leader hidden md:block" aria-hidden />
+
+        <span className="caps flex items-center gap-2 text-[11px] whitespace-nowrap">
+          <span
+            className={cn(
+              'size-1.5',
+              connected ? 'bg-ok' : 'blink bg-critical',
+            )}
+            aria-hidden
+          />
+          <span className={connected ? 'text-ink' : 'text-critical'}>
+            {connected ? t('rail.connected') : t('rail.disconnected')}
+          </span>
+          <span className="hidden tracking-normal text-ink-faint normal-case lg:inline">
+            {port ?? t('rail.noPort')}
+          </span>
+        </span>
+
+        <span className="silk hidden whitespace-nowrap xl:inline">
+          {t('rail.poll', { seconds: POLL_INTERVAL_MS / 1000 })}
+        </span>
+
+        <div className="ml-1 flex items-center gap-1">
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={onRefresh}
             aria-label={t('rail.refresh')}
           >
-            <RefreshCw className="size-3.5" />
+            <span className="text-accent" aria-hidden>
+              ↻
+            </span>
+            {t('rail.refreshShort')}
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={onToggleTheme}
             aria-label={theme === 'dark' ? t('rail.toLight') : t('rail.toDark')}
           >
-            {theme === 'dark' ? (
-              <Sun className="size-3.5" />
-            ) : (
-              <Moon className="size-3.5" />
-            )}
+            {theme === 'dark' ? t('rail.light') : t('rail.dark')}
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={cycleLanguage}
             aria-label={`${t('rail.language')}: ${LANGUAGE_NAMES[nextLanguage].name}`}
             title={LANGUAGE_NAMES[nextLanguage].name}
           >
-            <span className="text-[10px] font-semibold tracking-wide">
-              {LANGUAGE_NAMES[nextLanguage].short}
-            </span>
+            {LANGUAGE_NAMES[nextLanguage].short}
           </Button>
         </div>
       </div>
@@ -121,7 +119,7 @@ export function TopRail({
       {batteryError ? (
         <ErrorRow label={t('rail.battery')} message={batteryError} />
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -129,7 +127,6 @@ export function TopRail({
 function StackName({ totals }: { totals: StackTotals | null }) {
   const { t } = useTranslation();
   const models = totals?.models ?? [];
-  // The model names come off the packs themselves, so they read the same in every language.
   const name =
     models.length === 0
       ? t('rail.stack')
@@ -159,11 +156,11 @@ function StackName({ totals }: { totals: StackTotals | null }) {
   }
 
   return (
-    <div className="flex min-w-0 items-baseline gap-2.5">
-      <h1 className="truncate text-[15px] leading-none font-semibold tracking-tight">
+    <div className="flex min-w-0 shrink-0 items-baseline gap-3">
+      <h1 className="caps truncate text-[12px] leading-none font-semibold text-ink">
         {name}
       </h1>
-      <p className="tnum truncate text-[11px] text-ink-faint">
+      <p className="caps tnum hidden truncate text-[11px] text-ink-faint sm:block">
         {parts.length > 0 ? parts.join(' · ') : t('rail.waiting')}
       </p>
     </div>
@@ -172,9 +169,9 @@ function StackName({ totals }: { totals: StackTotals | null }) {
 
 function ErrorRow({ label, message }: { label: string; message: string }) {
   return (
-    <div className="border-t border-rule bg-[var(--critical-soft)] px-3 py-1">
-      <p className="flex gap-2 text-[11px] text-[var(--critical)]">
-        <span className="silk shrink-0 text-[var(--critical)]">{label}</span>
+    <div className="border-t border-critical/40 bg-critical-soft px-3 py-1.5">
+      <p className="flex gap-3 text-[11px] text-critical">
+        <span className="caps shrink-0 font-medium">! {label}</span>
         <span className="min-w-0 break-words">{message}</span>
       </p>
     </div>

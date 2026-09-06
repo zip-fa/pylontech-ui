@@ -1,5 +1,4 @@
 import type { Cell, PackCells } from '@libs/protocol';
-import { Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Panel, PanelBody, PanelHead } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import {
 } from '@/lib/severity';
 import { cn } from '@/lib/utils';
 
-const CELL_MIN_WIDTH = 58;
+const CELL_MIN_WIDTH = 56;
 
 function tempSpread(cells: Cell[]): number {
   const temps = cells
@@ -36,13 +35,32 @@ function tempSpread(cells: Cell[]): number {
 export function CellMatrix({ packs }: { packs: PackCells[] }) {
   return (
     <TooltipProvider delayDuration={80}>
-      <div className="bed flex flex-col gap-px">
+      <div className="flex flex-col gap-3">
         {packs.map((pack) => (
           <PackCellRow key={pack.address} pack={pack} />
         ))}
         <DeviationLegend />
       </div>
     </TooltipProvider>
+  );
+}
+
+/** One figure in the pack's head line: silkscreened word, then the reading. */
+function Figure({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+}) {
+  return (
+    <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+      <span className="silk">{label}</span>
+      <span className="tnum text-[11px] text-ink">{value}</span>
+      {unit ? <span className="text-[10px] text-ink-faint">{unit}</span> : null}
+    </span>
   );
 }
 
@@ -54,48 +72,45 @@ function PackCellRow({ pack }: { pack: PackCells }) {
 
   return (
     <Panel>
-      <PanelHead title={t('grid.pack', { address: pack.address })}>
-        <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-[11px] whitespace-nowrap text-ink-faint">
-          <span className="tnum">
-            {t('cells.mean')}{' '}
-            <span className="text-ink-dim">{num(pack.mean, 1)}</span> mV
-          </span>
-          <span className="tnum">
-            <span className="text-ink-dim">{pack.cells.length}</span>{' '}
-            {t('cells.cellsCount')}
-          </span>
-          <span className="tnum">
-            {t('cells.tempSpread')}{' '}
-            <span className="text-ink-dim">{num(temps, 1)}</span> °C
-          </span>
-          <span className="tnum flex items-center gap-1">
-            {balancing > 0 ? (
-              <Activity className="size-3 text-[var(--warn)]" aria-hidden />
-            ) : null}
-            <span className="text-ink-dim">{balancing}</span>{' '}
-            {t('cells.balancingCount')}
-          </span>
-          <span className="flex items-baseline gap-1.5">
+      <PanelHead
+        title={t('grid.pack', { address: pack.address })}
+        tone={severity === 'ok' ? 'ok' : severity}
+      >
+        <span className="ml-auto flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+          <Figure label={t('cells.mean')} value={num(pack.mean, 1)} unit="mV" />
+          <Figure
+            label={t('cells.cellsCount')}
+            value={String(pack.cells.length)}
+          />
+          <Figure
+            label={t('cells.tempSpread')}
+            value={num(temps, 1)}
+            unit="°C"
+          />
+          <Figure label={t('cells.balancingCount')} value={String(balancing)} />
+          <span className="flex items-baseline gap-2">
             <span
               className={cn(
-                'tnum text-[15px] leading-none font-semibold',
+                'tnum text-[14px] leading-none font-semibold',
                 severity === 'ok' && 'text-ink',
-                severity === 'warn' && 'text-[var(--warn)]',
-                severity === 'critical' && 'text-[var(--critical)]',
+                severity === 'warn' && 'text-warn',
+                severity === 'critical' && 'text-critical',
               )}
             >
               {int(pack.spread)}
             </span>
-            <span>{t('cells.mvSpread')}</span>
+            <span className="text-[10px] text-ink-faint">
+              {t('cells.mvSpread')}
+            </span>
             <SpreadBadge spread={pack.spread} />
           </span>
         </span>
       </PanelHead>
-      <PanelBody className="flex flex-col gap-2 p-2">
-        <SpreadMeter spread={pack.spread} className="px-1" />
+      <PanelBody className="flex flex-col gap-2.5 p-3">
+        <SpreadMeter spread={pack.spread} />
         <div className="overflow-x-auto">
           <div
-            className="grid gap-px"
+            className="grid gap-[2px]"
             style={{
               gridTemplateColumns: `repeat(${pack.cells.length}, minmax(${CELL_MIN_WIDTH}px, 1fr))`,
             }}
@@ -122,8 +137,8 @@ function CellTile({ cell, mean }: { cell: Cell; mean: number }) {
         <button
           type="button"
           className={cn(
-            'relative flex flex-col items-center justify-center gap-px border border-transparent px-1 py-1 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
-            extreme && 'border-current ring-1 ring-current',
+            'relative flex flex-col items-center justify-center gap-0.5 border border-transparent px-1 py-1.5 focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:outline-none',
+            extreme && 'border-current',
             cell.balancing && 'stripe-balancing',
           )}
           style={{
@@ -131,37 +146,37 @@ function CellTile({ cell, mean }: { cell: Cell; mean: number }) {
             color: deviationInk(bucket),
           }}
         >
-          <span className="tnum text-[9px] opacity-70">{cell.index}</span>
-          <span className="tnum text-[13px] leading-none font-semibold">
+          <span className="tnum text-[9px] leading-none opacity-60">
+            {cell.index}
+          </span>
+          <span className="tnum text-[12px] leading-none font-medium">
             {int(cell.voltage)}
           </span>
-          <span className="tnum text-[10px] leading-none opacity-80">
+          <span className="tnum text-[10px] leading-none opacity-75">
             {signed(delta, 0)}
           </span>
           {cell.balancing ? (
             <span
-              className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-current"
+              className="absolute top-1 right-1 size-1 bg-current"
               aria-hidden
             />
           ) : null}
         </button>
       </TooltipTrigger>
       <TooltipContent>
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold">
+        <div className="flex flex-col gap-1.5">
+          <span className="silk text-ink">
             {t('cells.cellNumber', { index: cell.index })}
           </span>
-          <dl className="tnum grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 text-[11px]">
+          <dl className="tnum grid grid-cols-[auto_auto] gap-x-4 gap-y-0.5 text-[11px]">
             <dt className="text-ink-dim">{t('cells.voltage')}</dt>
-            <dd className="text-right font-medium">{int(cell.voltage)} mV</dd>
+            <dd className="text-right">{int(cell.voltage)} mV</dd>
             <dt className="text-ink-dim">{t('cells.deltaFromMean')}</dt>
-            <dd className="text-right font-medium">{signed(delta, 1)} mV</dd>
+            <dd className="text-right">{signed(delta, 1)} mV</dd>
             <dt className="text-ink-dim">{t('cells.temperature')}</dt>
-            <dd className="text-right font-medium">
-              {num(cell.temperature, 1)} °C
-            </dd>
+            <dd className="text-right">{num(cell.temperature, 1)} °C</dd>
             <dt className="text-ink-dim">{t('cells.balancing')}</dt>
-            <dd className="text-right font-medium">
+            <dd className="text-right">
               {cell.balancing ? t('cells.yes') : t('cells.no')}
             </dd>
           </dl>
@@ -176,7 +191,7 @@ const LEGEND_BUCKETS = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 function legendLabel(bucket: number): string {
   switch (bucket) {
     case -4:
-      return '≤ −30';
+      return '≤−30';
     case -2:
       return '−8';
     case 0:
@@ -184,7 +199,7 @@ function legendLabel(bucket: number): string {
     case 2:
       return '+8';
     case 4:
-      return '≥ +30';
+      return '≥+30';
     default:
       return '';
   }
@@ -194,14 +209,14 @@ function DeviationLegend() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-panel px-3 py-2 text-[11px] text-ink-dim">
-      <span className="flex items-center gap-2">
-        <span>{t('cells.legend')}</span>
-        <span className="flex items-end gap-px">
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-2 px-1 text-[10px] text-ink-faint">
+      <span className="flex items-center gap-3">
+        <span className="silk">{t('cells.legend')}</span>
+        <span className="flex items-start gap-[2px]">
           {LEGEND_BUCKETS.map((bucket) => (
-            <span key={bucket} className="flex flex-col items-center gap-0.5">
+            <span key={bucket} className="flex w-7 flex-col items-center gap-1">
               <span
-                className="block h-4 w-6 rounded-sm"
+                className="block h-2 w-full"
                 style={{ backgroundColor: deviationColor(bucket) }}
               />
               <span className="tnum text-[9px]">{legendLabel(bucket)}</span>
@@ -210,13 +225,10 @@ function DeviationLegend() {
         </span>
       </span>
       <span className="flex items-center gap-2">
-        <span className="stripe-balancing relative block size-4 rounded-sm border bg-panel-sunken">
-          <span
-            className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-current"
-            aria-hidden
-          />
+        <span className="stripe-balancing relative block h-2 w-7 bg-seg-empty">
+          <span className="absolute top-0 right-0 size-1 bg-ink" aria-hidden />
         </span>
-        {t('cells.balancingLegend')}
+        <span className="silk">{t('cells.balancingLegend')}</span>
       </span>
     </div>
   );

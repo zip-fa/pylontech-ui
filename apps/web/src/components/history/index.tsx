@@ -1,5 +1,4 @@
 import type { StackTotals } from '@libs/protocol';
-import { Database, Loader2, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '@/components/empty-state';
@@ -36,7 +35,6 @@ export function HistoryPanel({
   if (feed.unavailable) {
     return (
       <EmptyState
-        icon={Database}
         title={t('history.unavailableTitle')}
         detail={t('history.unavailableDetail')}
       />
@@ -46,7 +44,7 @@ export function HistoryPanel({
   if (feed.error) {
     return (
       <EmptyState
-        icon={TriangleAlert}
+        tone="critical"
         title={t('history.errorTitle')}
         detail={feed.error}
       />
@@ -56,7 +54,7 @@ export function HistoryPanel({
   if (feed.isPending) {
     return (
       <EmptyState
-        icon={Loader2}
+        loading
         title={t('history.loadingTitle')}
         detail={t('history.loadingDetail')}
       />
@@ -66,7 +64,7 @@ export function HistoryPanel({
   const empty = (feed.summary?.coverage.rows ?? 0) === 0;
 
   return (
-    <div className="bed flex flex-col gap-px">
+    <div className="flex flex-col gap-3">
       {feed.summary ? (
         <HistoryCards
           summary={feed.summary}
@@ -75,30 +73,30 @@ export function HistoryPanel({
         />
       ) : null}
 
-      <div className="flex items-center gap-3 bg-panel px-3 py-1.5">
-        <span className="silk text-ink-dim">{t('history.window')}</span>
+      <div className="flex h-9 items-center gap-3 border border-rule bg-panel-head px-3">
+        <span className="silk">{t('history.window')}</span>
         <RangePicker value={range} onChange={onRangeChange} />
-        <span className="ml-auto truncate text-[11px] text-ink-faint">
+        <span className="leader hidden sm:block" aria-hidden />
+        <span className="truncate text-[11px] text-ink-faint">
           {feed.summary ? <CoverageNote summary={feed.summary} /> : null}
         </span>
       </div>
 
       {empty ? (
         <EmptyState
-          icon={Database}
           title={t('history.emptyTitle')}
           detail={t('history.emptyDetail')}
         />
       ) : (
         <>
-          <div className="bed grid grid-cols-1 gap-px xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {feed.stack ? <PowerChart series={feed.stack} /> : null}
             {feed.stack ? <SocChart series={feed.stack} /> : null}
           </div>
 
           {feed.energy ? <EnergyChart days={feed.energy} /> : null}
 
-          <div className="bed grid grid-cols-1 gap-px xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {feed.packs ? <PackTemperatureChart series={feed.packs} /> : null}
             {feed.packs ? <PackSpreadChart series={feed.packs} /> : null}
           </div>

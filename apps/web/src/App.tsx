@@ -1,10 +1,4 @@
 import type { PackCells } from '@libs/protocol';
-import {
-  BatteryWarning,
-  Loader2,
-  PlugZap,
-  type LucideIcon,
-} from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -147,24 +141,29 @@ export function App() {
    * that has just dropped is the moment you go looking for what happened before it did. So the
    * degraded screens keep the History tab rather than collapsing to a single message.
    */
-  const degraded = (icon: LucideIcon, title: string, detail: string) => (
+  const degraded = (
+    state: { loading?: boolean; tone?: 'dim' | 'warn' | 'critical' },
+    title: string,
+    detail: string,
+  ) => (
     <>
-      <Tabs tabs={[historyTab, metricsTab]} active={tab} onSelect={setTab} />
-      {tab === 'history' ? (
-        <Suspense
-          fallback={
-            <EmptyState
-              icon={Loader2}
-              title={t('history.loadingTitle')}
-              detail={t('history.loadingDetail')}
+      <div className="sticky top-0 z-20 border-b border-rule bg-ground/95 backdrop-blur">
+        {rail}
+        <Tabs tabs={[historyTab, metricsTab]} active={tab} onSelect={setTab} />
+      </div>
+      <main className="flex flex-1 flex-col gap-3 p-3">
+        {tab === 'history' ? (
+          <Suspense fallback={historyFallback}>
+            <HistoryPanel
+              range={range}
+              onRangeChange={setRange}
+              totals={null}
             />
-          }
-        >
-          <HistoryPanel range={range} onRangeChange={setRange} totals={null} />
-        </Suspense>
-      ) : (
-        <EmptyState icon={icon} title={title} detail={detail} />
-      )}
+          </Suspense>
+        ) : (
+          <EmptyState {...state} title={title} detail={detail} />
+        )}
+      </main>
     </>
   );
 
@@ -183,33 +182,43 @@ export function App() {
     metricsTab,
   ];
 
+  const rail = (
+    <TopRail
+      snapshot={snapshot}
+      health={feed.health}
+      fetchError={feed.fetchError}
+      now={now}
+      theme={theme}
+      onToggleTheme={toggleTheme}
+      onRefresh={feed.refresh}
+    />
+  );
+
+  const historyFallback = (
+    <EmptyState
+      loading
+      title={t('history.loadingTitle')}
+      detail={t('history.loadingDetail')}
+    />
+  );
+
   return (
     <div className="flex min-h-full flex-col">
-      <TopRail
-        snapshot={snapshot}
-        health={feed.health}
-        fetchError={feed.fetchError}
-        now={now}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onRefresh={feed.refresh}
-      />
-
       {feed.isPending && !snapshot ? (
         degraded(
-          Loader2,
+          { loading: true },
           t('empty.contactingTitle'),
           t('empty.contactingDetail'),
         )
       ) : !snapshot ? (
         degraded(
-          PlugZap,
+          { tone: 'critical' },
           t('empty.noSnapshotTitle'),
           t('empty.noSnapshotDetail'),
         )
       ) : packs.length === 0 ? (
         degraded(
-          BatteryWarning,
+          { tone: snapshot.connected ? 'warn' : 'critical' },
           t('empty.noPacksTitle'),
           snapshot.connected
             ? t('empty.noPacksConnected')
@@ -217,28 +226,28 @@ export function App() {
         )
       ) : (
         <>
-          {snapshot.totals ? (
-            <div className="border-b border-rule">
-              <StackBand totals={snapshot.totals} />
-            </div>
-          ) : null}
+          {/* Rail and tabs stay pinned; the band scrolls away once you are reading a panel. */}
+          <div className="sticky top-0 z-20 border-b border-rule bg-ground/95 backdrop-blur">
+            {rail}
+            <Tabs tabs={tabs} active={tab} onSelect={setTab} />
+          </div>
 
-          <Tabs tabs={tabs} active={tab} onSelect={setTab} />
+          <main className="flex flex-1 flex-col gap-3 p-3">
+            {snapshot.totals ? <StackBand totals={snapshot.totals} /> : null}
 
-          <main className="flex-1 bg-ground">
             {tab === 'cells' ? (
-              <div className="bed flex flex-col gap-px">
+              <>
                 {cellPacks.length > 0 ? (
                   <CellMatrix packs={cellPacks} />
                 ) : (
                   <EmptyState
-                    icon={BatteryWarning}
+                    tone="warn"
                     title={t('empty.noCellsTitle')}
                     detail={t('empty.noCellsDetail')}
                   />
                 )}
 
-                <div className="bed grid grid-cols-1 gap-px xl:grid-cols-[minmax(0,32rem)_minmax(0,1fr)]">
+                <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,32rem)_minmax(0,1fr)]">
                   <Panel>
                     <PanelHead
                       title={t('panels.packReadings')}
@@ -262,26 +271,18 @@ export function App() {
                       {cellRows.length > 0 ? (
                         <CellTable rows={cellRows} />
                       ) : (
-                        <p className="p-3 text-xs text-ink-faint">
+                        <p className="p-3 text-[11px] text-ink-faint">
                           {t('empty.waitingCells')}
                         </p>
                       )}
                     </PanelBody>
                   </Panel>
                 </div>
-              </div>
+              </>
             ) : null}
 
             {tab === 'history' ? (
-              <Suspense
-                fallback={
-                  <EmptyState
-                    icon={Loader2}
-                    title={t('history.loadingTitle')}
-                    detail={t('history.loadingDetail')}
-                  />
-                }
-              >
+              <Suspense fallback={historyFallback}>
                 <HistoryPanel
                   range={range}
                   onRangeChange={setRange}

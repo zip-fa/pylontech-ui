@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@libs/protocol": "*",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@tanstack/react-query": "^5.102.8",
@@ -16,7 +17,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^26.4.0",
-    "lucide-react": "^0.545.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-i18next": "^17.0.12",

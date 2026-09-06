@@ -78,7 +78,7 @@ export function HistoryCards({ summary, energy, totals }: HistoryCardsProps) {
       : null;
 
   return (
-    <div className="bed grid grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+    <div className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
       <Kpi
         label={t('history.cards.chargedToday')}
         value={whAsKwh(summary.today.chargedWh)}

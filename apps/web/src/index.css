@@ -5,118 +5,126 @@
 /*
  * DESIGN NOTES
  *
- * Identity: a switchboard, not a web page. Panels butt against each other separated by hairlines
- * rather than floating on a background with gaps, which is what buys the density this screen needs.
+ * Identity: a terminal HUD, not a web page. One monospaced face at one body size, bordered panels
+ * on a near-black ground, bracket-cornered labels, segmented meters and dashed leaders. Nothing is
+ * rounded, nothing casts a shadow, nothing is a gradient.
  *
- * Colour: the chrome is deliberately achromatic graphite so that the only saturated pixels on the
- * page are measurements. Three disjoint systems carry all the colour:
- *   ok / warn / critical  -> severity (spread, alarms, non-Normal states)
- *   dev-neg / dev-pos     -> signed deviation from a pack's own cell mean; the page's signature
- *   charge                -> state of charge only, so it never reads as a severity
+ * Colour: the chrome is achromatic. Four hues carry all the meaning:
+ *   accent (orange)     -> affordance: shortcut keys, sort direction, the active window, arrows
+ *   ok / warn / critical -> verdicts: spread, alarms, non-Normal states, wear
+ *   cold (blue)         -> below the mean, and state of charge; never a verdict
+ * The diverging cell fill runs cold (blue) through neutral to hot (red).
  *
- * Type: the system UI stack, at 13px with tight leading. Figures are tabular everywhere, because
- * this page is read by comparing columns of digits.
+ * Case: our own words are set in capitals. The machine's words — working states, protection keys,
+ * firmware strings — are printed as the console spells them, because they are what you would type
+ * back at it.
  */
 
 :root {
-  --ground: #e8ebee;
-  --panel: #ffffff;
-  --panel-sunken: #f2f4f6;
-  --rule: #ccd3d9;
-  --rule-strong: #aeb8c0;
-  --ink: #0d1215;
-  --ink-dim: #5e6b73;
-  --ink-faint: #8c979f;
+  --ground: #e6e6e2;
+  --panel: #f5f5f2;
+  --panel-head: #ecece8;
+  --panel-sunken: #e9e9e5;
+  --rule: #cfcfc9;
+  --rule-strong: #a6a6a0;
+  --ink: #15151a;
+  --ink-dim: #5a5a60;
+  --ink-faint: #8a8a90;
 
-  --ok: #0f7a45;
-  --ok-soft: #d9f0e3;
-  --warn: #9a6206;
-  --warn-soft: #fbeed3;
-  --critical: #bb2b21;
-  --critical-soft: #fadedb;
-  --charge: #147a86;
+  --accent: #d9530e;
+  --ok: #178a41;
+  --ok-soft: rgba(23, 138, 65, 0.12);
+  --warn: #a87400;
+  --warn-soft: rgba(168, 116, 0, 0.14);
+  --critical: #c8332a;
+  --critical-soft: rgba(200, 51, 42, 0.12);
+  --cold: #2668c8;
+  --charge: var(--cold);
+  --seg-empty: #d4d4cf;
 
-  --dev-zero: #e9edf0;
-  --dev-neg-1: #d7e6f8;
-  --dev-neg-2: #aecdf2;
-  --dev-neg-3: #74a9e6;
-  --dev-neg-4: #2f77cd;
-  --dev-pos-1: #fadde2;
-  --dev-pos-2: #f4b6c1;
-  --dev-pos-3: #e88394;
-  --dev-pos-4: #cf4560;
-  --dev-ink: #0d1215;
+  --dev-zero: #dcdcd7;
+  --dev-neg-1: #cfdff5;
+  --dev-neg-2: #a6c6ef;
+  --dev-neg-3: #6a9fe3;
+  --dev-neg-4: #2668c8;
+  --dev-pos-1: #f7d9d5;
+  --dev-pos-2: #efaea6;
+  --dev-pos-3: #e07a70;
+  --dev-pos-4: #c8332a;
+  --dev-ink: #15151a;
   --dev-ink-strong: #ffffff;
-  --balance-stripe: rgba(13, 18, 21, 0.3);
+  --balance-stripe: rgba(21, 21, 26, 0.28);
 
-  --ring: #6d7a83;
+  --ring: var(--accent);
 
-  /*
-   * Series colour. A chart is measurement, so it is allowed to be saturated, but the flow of energy
-   * is not a severity: charging is not "good" and discharging is not "bad", so neither borrows the
-   * ok/critical pair. The numbered ramp is identity only — which pack a line belongs to — and is
-   * ordered for distinguishability rather than magnitude.
-   */
-  --series-in: #1f7a5c;
-  --series-out: #a8590c;
-  --series-soc: var(--charge);
-  --chart-1: #2f77cd;
-  --chart-2: #c2571f;
-  --chart-3: #7a4fbd;
-  --chart-4: #0f8a7a;
-  --chart-5: #b03a6a;
-  --chart-6: #6f7d17;
-  --grid: #dfe4e9;
+  --series-in: var(--ok);
+  --series-out: var(--accent);
+  --series-soc: var(--cold);
+  --chart-1: #178a41;
+  --chart-2: #d9530e;
+  --chart-3: #2668c8;
+  --chart-4: #a87400;
+  --chart-5: #a23fbf;
+  --chart-6: #15151a;
+  --grid: #d6d6d1;
 }
 
 .dark {
-  --ground: #05080a;
-  --panel: #0e1317;
-  --panel-sunken: #0a0e11;
-  --rule: #1e262c;
-  --rule-strong: #2c3740;
-  --ink: #dfe6eb;
-  --ink-dim: #85929c;
-  --ink-faint: #5f6c76;
+  --ground: #08080a;
+  --panel: #0e0e10;
+  --panel-head: #141417;
+  --panel-sunken: #0b0b0d;
+  --rule: #222226;
+  --rule-strong: #35353b;
+  --ink: #e6e6e3;
+  --ink-dim: #9c9c9a;
+  --ink-faint: #63636a;
 
-  --ok: #35c184;
-  --ok-soft: #0d2a1d;
-  --warn: #e0a63b;
-  --warn-soft: #2e2410;
-  --critical: #ff6d61;
-  --critical-soft: #341412;
-  --charge: #3fb8c8;
+  --accent: #ff6a1f;
+  --ok: #3ddc6a;
+  --ok-soft: rgba(61, 220, 106, 0.1);
+  --warn: #f2d21b;
+  --warn-soft: rgba(242, 210, 27, 0.1);
+  --critical: #ff4a3d;
+  --critical-soft: rgba(255, 74, 61, 0.12);
+  --cold: #4a9dff;
+  --charge: var(--cold);
+  --seg-empty: #1f1f23;
 
-  --dev-zero: #161d23;
-  --dev-neg-1: #12283e;
-  --dev-neg-2: #163c62;
-  --dev-neg-3: #21598f;
-  --dev-neg-4: #3d88d6;
-  --dev-pos-1: #3a1a22;
-  --dev-pos-2: #5d2434;
-  --dev-pos-3: #913a52;
-  --dev-pos-4: #d95c78;
-  --dev-ink: #dfe6eb;
-  --dev-ink-strong: #ffffff;
-  --balance-stripe: rgba(223, 230, 235, 0.36);
+  --dev-zero: #1a1a1e;
+  --dev-neg-1: #14243a;
+  --dev-neg-2: #173d6a;
+  --dev-neg-3: #1f5ea6;
+  --dev-neg-4: #4a9dff;
+  --dev-pos-1: #351614;
+  --dev-pos-2: #611d18;
+  --dev-pos-3: #a3261e;
+  --dev-pos-4: #ff4a3d;
+  --dev-ink: #e6e6e3;
+  --dev-ink-strong: #0a0a0c;
+  --balance-stripe: rgba(230, 230, 227, 0.32);
 
-  --ring: #66757f;
+  --ring: var(--accent);
 
-  --series-in: #46c39a;
-  --series-out: #e0a154;
-  --series-soc: var(--charge);
-  --chart-1: #5a9ff0;
-  --chart-2: #ef8a4b;
-  --chart-3: #a684e8;
-  --chart-4: #34bfab;
-  --chart-5: #e4718f;
-  --chart-6: #b3c23f;
-  --grid: #1b2329;
+  --series-in: var(--ok);
+  --series-out: var(--accent);
+  --series-soc: var(--cold);
+  --chart-1: #3ddc6a;
+  --chart-2: #ff6a1f;
+  --chart-3: #4a9dff;
+  --chart-4: #f2d21b;
+  --chart-5: #e06cff;
+  --chart-6: #e6e6e3;
+  --grid: #1b1b1f;
 }
 
 @theme inline {
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-sans: var(--font-mono);
+
   --color-ground: var(--ground);
   --color-panel: var(--panel);
+  --color-panel-head: var(--panel-head);
   --color-panel-sunken: var(--panel-sunken);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
@@ -124,19 +132,22 @@
   --color-ink-dim: var(--ink-dim);
   --color-ink-faint: var(--ink-faint);
 
+  --color-accent: var(--accent);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-critical: var(--critical);
   --color-critical-soft: var(--critical-soft);
+  --color-cold: var(--cold);
   --color-charge: var(--charge);
+  --color-seg-empty: var(--seg-empty);
   --color-series-in: var(--series-in);
   --color-series-out: var(--series-out);
   --color-grid: var(--grid);
 
-  --radius-sm: 2px;
-  --radius-md: 3px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
 }
 
 @layer base {
@@ -153,34 +164,37 @@
   body {
     background-color: var(--ground);
     color: var(--ink);
-    font-size: 13px;
-    line-height: 1.35;
-    font-feature-settings: 'cv02', 'cv03', 'cv04';
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.45;
+    /* Slashed zero and tabular figures everywhere: this page is columns of digits. */
+    font-feature-settings:
+      'zero' 1,
+      'tnum' 1;
+    font-variant-numeric: tabular-nums slashed-zero;
     -webkit-font-smoothing: antialiased;
     /* An instrument panel scrolls down, never sideways. */
     overflow-x: hidden;
   }
 
   ::selection {
-    background: var(--rule-strong);
-    color: var(--panel);
+    background: var(--accent);
+    color: var(--ground);
   }
 
-  /* Firefox leaves scrollbars opaque and heavy; the panels are too dense for that. */
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--rule-strong) transparent;
   }
 
   ::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-thumb {
     background: var(--rule-strong);
     border: 2px solid var(--panel);
-    border-radius: 999px;
   }
 
   ::-webkit-scrollbar-track {
@@ -189,32 +203,123 @@
 }
 
 @layer components {
-  /* Every reading is compared column-wise, so digits are monospaced and fixed width. */
   .tnum {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums slashed-zero;
   }
 
-  /* Silkscreened panel label: condensed, small, wide-tracked, never sentence case. */
+  /* Our own words, set as the silkscreen sets them. */
+  .caps {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Panel label size: small, wide-tracked, never sentence case. */
   .silk {
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-faint);
     line-height: 1;
+  }
+
+  /* Bracket-cornered label: the one ornament on the page. `--reticle` sets its colour. */
+  .reticle {
+    --reticle: var(--ok);
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 8px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--reticle);
+    background-color: color-mix(in srgb, var(--reticle) 9%, transparent);
+    background-image:
+      linear-gradient(var(--reticle), var(--reticle)), linear-gradient(var(--reticle), var(--reticle)),
+      linear-gradient(var(--reticle), var(--reticle)), linear-gradient(var(--reticle), var(--reticle)),
+      linear-gradient(var(--reticle), var(--reticle)), linear-gradient(var(--reticle), var(--reticle)),
+      linear-gradient(var(--reticle), var(--reticle)), linear-gradient(var(--reticle), var(--reticle));
+    background-size:
+      5px 1px,
+      1px 5px,
+      5px 1px,
+      1px 5px,
+      5px 1px,
+      1px 5px,
+      5px 1px,
+      1px 5px;
+    background-position:
+      top left,
+      top left,
+      top right,
+      top right,
+      bottom left,
+      bottom left,
+      bottom right,
+      bottom right;
+    background-repeat: no-repeat;
+  }
+
+  .reticle-dim {
+    --reticle: var(--ink-dim);
+  }
+
+  .reticle-accent {
+    --reticle: var(--accent);
+  }
+
+  .reticle-warn {
+    --reticle: var(--warn);
+  }
+
+  .reticle-critical {
+    --reticle: var(--critical);
+  }
+
+  /* Dashed rule that fills the slack in a row, so the two ends read as one line. */
+  .leader {
+    flex: 1 1 0;
+    min-width: 16px;
+    height: 1px;
+    align-self: center;
+    background: repeating-linear-gradient(90deg, var(--rule-strong) 0 3px, transparent 3px 7px);
+  }
+
+  /* Dotted leader between a label and its figure. */
+  .dots {
+    flex: 1 1 0;
+    min-width: 12px;
+    height: 2px;
+    align-self: center;
+    background: radial-gradient(circle, var(--ink-faint) 0.7px, transparent 0.8px) 0 50% / 4px 2px repeat-x;
+  }
+
+  /* Shortcut numeral: the small orange superscript in front of a tab label. */
+  .key {
+    font-size: 9px;
+    line-height: 1;
+    color: var(--accent);
+    vertical-align: top;
+    position: relative;
+    top: -1px;
+    margin-right: 1px;
   }
 
   .stripe-balancing {
     background-image: repeating-linear-gradient(135deg, var(--balance-stripe) 0 1.5px, transparent 1.5px 5px);
   }
 
-  /*
-   * Panel grid: children sit on a hairline bed rather than being separated by gaps, so a dense
-   * screen reads as one instrument instead of a scattering of cards.
-   */
-  .bed {
-    background-color: var(--rule);
-    gap: 1px;
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .blink {
+    animation: blink 1s steps(1) infinite;
   }
 }

@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -30,9 +30,20 @@ const isLink = <T extends string>(entry: TabEntry<T>): entry is TabLinkDef =>
   'href' in entry;
 
 const ITEM =
-  'relative -mb-px flex items-center gap-1.5 border border-transparent px-3 py-1.5 text-[12px] font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none';
+  'caps relative flex h-9 shrink-0 items-center gap-1.5 px-2 text-[11px] whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:outline-none';
 
-/** Panel selector, styled as instrument tabs sitting on the rule rather than as buttons. */
+function isEditable(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+  );
+}
+
+/**
+ * Panel selector. Each panel carries a numeral, and the numeral is a real shortcut — press it
+ * anywhere on the page — so the superscript is an instruction, not a decoration.
+ */
 export function Tabs<T extends string>({
   tabs,
   active,
@@ -42,52 +53,82 @@ export function Tabs<T extends string>({
   const panels = tabs.filter((entry): entry is TabDef<T> => !isLink(entry));
   const links = tabs.filter(isLink);
 
-  return (
-    <div className="flex items-end gap-px overflow-x-auto border-b border-rule bg-ground px-2">
-      {/* A link is not a tab, so it stays outside the tablist rather than lying about its role. */}
-      {panels.length > 0 ? (
-        <div
-          role="tablist"
-          aria-label={t('tabs.ariaLabel')}
-          className="flex items-end gap-px"
-        >
-          {panels.map((tab) => {
-            const selected = tab.id === active;
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isEditable(event.target)
+      ) {
+        return;
+      }
 
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => onSelect(tab.id)}
-                className={cn(
-                  ITEM,
-                  selected
-                    ? 'border-rule border-b-panel bg-panel text-ink'
-                    : 'text-ink-faint hover:text-ink-dim',
-                )}
-              >
-                {tab.label}
-                {tab.badge ? (
-                  <span
-                    className={cn(
-                      'tnum rounded-sm px-1 text-[10px] leading-[1.5] font-semibold',
-                      tab.tone === 'critical'
-                        ? 'bg-[var(--critical-soft)] text-[var(--critical)]'
-                        : tab.tone === 'warn'
-                          ? 'bg-[var(--warn-soft)] text-[var(--warn)]'
-                          : 'bg-panel-sunken text-ink-faint',
-                    )}
-                  >
-                    {tab.badge}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+      const index = Number(event.key) - 1;
+      const target = panels[index];
+
+      if (Number.isInteger(index) && target) {
+        onSelect(target.id);
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panels, onSelect]);
+
+  return (
+    <div className="flex items-stretch gap-1 overflow-x-auto px-1">
+      {/* A link is not a tab, so it stays outside the tablist rather than lying about its role. */}
+      <div
+        role="tablist"
+        aria-label={t('tabs.ariaLabel')}
+        className="flex items-stretch gap-1"
+      >
+        {panels.map((tab, index) => {
+          const selected = tab.id === active;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-keyshortcuts={String(index + 1)}
+              onClick={() => onSelect(tab.id)}
+              className={cn(
+                ITEM,
+                selected ? 'text-ink' : 'text-ink-faint hover:text-ink-dim',
+              )}
+            >
+              <span className="key" aria-hidden>
+                {index + 1}
+              </span>
+              {tab.label}
+              {tab.badge ? (
+                <span
+                  className={cn(
+                    'tnum px-1 text-[10px] leading-[1.6]',
+                    tab.tone === 'critical'
+                      ? 'bg-critical-soft text-critical'
+                      : tab.tone === 'warn'
+                        ? 'bg-warn-soft text-warn'
+                        : 'bg-panel-sunken text-ink-faint',
+                  )}
+                >
+                  {tab.badge}
+                </span>
+              ) : null}
+              {selected ? (
+                <span
+                  className="absolute inset-x-2 bottom-0 h-px bg-accent"
+                  aria-hidden
+                />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
 
       {links.map((link) => (
         <a
@@ -99,7 +140,9 @@ export function Tabs<T extends string>({
           className={cn(ITEM, 'text-ink-faint hover:text-ink-dim')}
         >
           {link.label}
-          <ExternalLink className="size-3 opacity-70" aria-hidden />
+          <span className="text-accent" aria-hidden>
+            ↗
+          </span>
         </a>
       ))}
     </div>

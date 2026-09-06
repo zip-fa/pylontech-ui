@@ -1,8 +1,8 @@
 import type { StackTotals } from '@libs/protocol';
-import { CircleAlert, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Kpi } from '@/components/ui/kpi';
+import { rampTone, Segments } from '@/components/ui/meter';
 import { num, signed, whAsKwh } from '@/lib/format';
 import { SPREAD_LABEL_KEY, spreadSeverity } from '@/lib/severity';
 import { cn } from '@/lib/utils';
@@ -23,25 +23,22 @@ function flowKey(
  */
 export function StackBand({ totals }: { totals: StackTotals }) {
   const { t } = useTranslation();
-  const soc = Number.isFinite(totals.soc)
-    ? Math.min(100, Math.max(0, totals.soc))
-    : 0;
   const spreadTone = spreadSeverity(totals.worstSpread);
-  const flowing = Number.isFinite(totals.power) && Math.abs(totals.power) >= 1;
 
   return (
-    <div className="bed grid grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
+    <div className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-4 xl:grid-cols-8">
       <Kpi
         label={t('band.charge')}
         value={num(totals.soc, 0)}
         unit="%"
         foot={
-          <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-panel-sunken">
-            <span
-              className="block h-full rounded-full bg-[var(--ok)]"
-              style={{ width: `${soc}%` }}
-            />
-          </span>
+          <Segments
+            value={totals.soc}
+            tone={rampTone}
+            size="sm"
+            className="mt-0.5"
+            label={t('band.charge')}
+          />
         }
       />
       <Kpi
@@ -64,7 +61,6 @@ export function StackBand({ totals }: { totals: StackTotals }) {
         label={t('band.current')}
         value={signed(totals.current, 1)}
         unit="A"
-        tone={flowing ? 'ok' : undefined}
         foot={t(flowKey(totals.power))}
       />
       <Kpi
@@ -113,23 +109,25 @@ function AlarmKpi({
   total: number;
 }) {
   const { t } = useTranslation();
-  const Icon = alarm ? CircleAlert : ShieldCheck;
 
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col justify-between gap-1 px-3 py-2',
-        alarm ? 'bg-[var(--critical-soft)]' : 'bg-panel',
+        'flex min-w-0 flex-col justify-between gap-1.5 px-3 py-2.5',
+        alarm ? 'bg-critical-soft' : 'bg-panel',
       )}
     >
-      <span className="silk text-ink-faint">{t('band.status')}</span>
+      <span className="silk">{t('band.status')}</span>
       <span
         className={cn(
-          'flex items-center gap-1.5 text-[15px] leading-none font-semibold',
-          alarm ? 'text-[var(--critical)]' : 'text-[var(--ok)]',
+          'caps flex items-center gap-2 text-[13px] leading-none font-semibold',
+          alarm ? 'text-critical' : 'text-ok',
         )}
       >
-        <Icon className="size-4 shrink-0" aria-hidden />
+        <span
+          className={cn('size-1.5 shrink-0 bg-current', alarm && 'blink')}
+          aria-hidden
+        />
         <span className="truncate">
           {alarm ? t('band.alarmActive') : t('band.allClear')}
         </span>

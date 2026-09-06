@@ -4,19 +4,18 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-1.5 rounded-sm text-[12px] font-semibold tracking-[0.06em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+  'caps inline-flex items-center justify-center gap-1.5 text-[11px] font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-ink text-panel hover:opacity-85',
-        outline:
+        default:
           'border border-rule text-ink-dim hover:border-rule-strong hover:text-ink',
-        ghost: 'text-ink-dim hover:bg-panel-sunken hover:text-ink',
+        accent: 'border border-accent/60 text-accent hover:bg-accent/10',
+        ghost: 'text-ink-dim hover:text-ink',
       },
       size: {
         default: 'h-7 px-2.5',
         sm: 'h-6 px-2',
-        icon: 'h-7 w-7',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

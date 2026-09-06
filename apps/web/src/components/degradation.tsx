@@ -9,6 +9,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { MetricGrid, type MetricRow } from '@/components/metric-grid';
 import { Panel, PanelBody, PanelHead } from '@/components/ui/card';
+import { Segments } from '@/components/ui/meter';
 import { count, int, mahAsAh, num, text, whAsKwh } from '@/lib/format';
 import type { Severity } from '@/lib/severity';
 import { cn } from '@/lib/utils';
@@ -103,7 +104,7 @@ export function Degradation({
     euro && rated && rated > 0 ? (euro.remainCapacity / rated) * 100 : null;
 
   return (
-    <div className="bed grid grid-cols-1 gap-px xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
       <Panel>
         <PanelHead
           title={t('panels.measuredCapacity')}
@@ -115,7 +116,7 @@ export function Degradation({
         />
         <PanelBody className="flex flex-col gap-4 p-3">
           {euro === null ? (
-            <p className="text-xs text-ink-faint">
+            <p className="text-[11px] leading-relaxed text-ink-faint">
               <Trans
                 i18nKey="degradation.euroMissing"
                 components={{ code: <code className="text-ink-dim" /> }}
@@ -123,22 +124,22 @@ export function Degradation({
             </p>
           ) : (
             <>
-              <div className="flex items-end gap-3">
+              <div className="flex items-baseline gap-2">
                 <span
                   className={cn(
-                    'tnum text-[44px] leading-[0.9] font-semibold tracking-tight',
+                    'tnum text-[32px] leading-none font-medium',
                     health !== null &&
                       healthSeverity(health) === 'warn' &&
-                      'text-[var(--warn)]',
+                      'text-warn',
                     health !== null &&
                       healthSeverity(health) === 'critical' &&
-                      'text-[var(--critical)]',
+                      'text-critical',
                   )}
                 >
                   {num(euro.remainCapacity, 0)}
                 </span>
-                <span className="pb-1 text-sm text-ink-dim">Ah</span>
-                <span className="tnum ml-auto pb-1 text-right text-xs text-ink-faint">
+                <span className="text-[12px] text-ink-dim">Ah</span>
+                <span className="tnum ml-auto text-right text-[11px] text-ink-faint">
                   {rated === null
                     ? t('degradation.nameplateUnknown')
                     : t(
@@ -152,21 +153,13 @@ export function Degradation({
 
               {health !== null ? (
                 <div className="flex flex-col gap-1.5">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel-sunken">
-                    <div
-                      className={cn(
-                        'h-full rounded-full',
-                        healthSeverity(health) === 'ok' && 'bg-[var(--ok)]',
-                        healthSeverity(health) === 'warn' && 'bg-[var(--warn)]',
-                        healthSeverity(health) === 'critical' &&
-                          'bg-[var(--critical)]',
-                      )}
-                      style={{
-                        width: `${Math.min(100, Math.max(2, health))}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="tnum text-xs text-ink-dim">
+                  <Segments
+                    value={health}
+                    count={25}
+                    tone={healthSeverity(health)}
+                    label={t('panels.measuredCapacity')}
+                  />
+                  <p className="tnum text-[11px] text-ink-dim">
                     {t('degradation.healthLine', {
                       retained: num(health, 1),
                       lost: num(Math.max(0, 100 - health), 1),
@@ -175,7 +168,7 @@ export function Degradation({
                 </div>
               ) : null}
 
-              <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-[3px] text-[12px]">
+              <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-[3px] border-t border-dashed border-rule pt-3 text-[12px]">
                 <Field
                   label={t('degradation.inService')}
                   value={dateText(t, euro.dateInService)}
@@ -265,7 +258,7 @@ export function Degradation({
             info={info}
             stats={stats}
           />
-          <p className="border-t border-rule px-3 py-2 text-[11px] leading-relaxed text-ink-faint">
+          <p className="border-t border-dashed border-rule px-3 py-2 text-[11px] leading-relaxed text-ink-faint">
             <Trans
               i18nKey="degradation.euroNote"
               components={{ term: <span className="text-ink-dim" /> }}
@@ -412,12 +405,12 @@ function Field({
 }) {
   return (
     <>
-      <dt className="truncate text-ink-dim">{label}</dt>
+      <dt className="caps truncate text-[11px] text-ink-dim">{label}</dt>
       <dd
         className={cn(
-          'tnum text-right font-medium',
-          tone === 'warn' && 'text-[var(--warn)]',
-          tone === 'critical' && 'text-[var(--critical)]',
+          'tnum text-right',
+          tone === 'warn' && 'text-warn',
+          tone === 'critical' && 'font-medium text-critical',
         )}
       >
         {value}

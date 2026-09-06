@@ -2,14 +2,14 @@ import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-/**
- * A panel is a face on the instrument, not a floating card: square-ish corners, a hairline
- * edge and no shadow, so panels can sit shoulder to shoulder on the hairline bed.
- */
+/** A bordered face on the instrument: hairline edge, a head band, no shadow, no radius. */
 export function Panel({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
-      className={cn('flex min-w-0 flex-col bg-panel', className)}
+      className={cn(
+        'flex min-w-0 flex-col border border-rule bg-panel',
+        className,
+      )}
       {...props}
     />
   );
@@ -19,11 +19,13 @@ export interface PanelHeadProps extends ComponentProps<'header'> {
   title: string;
   /** Right-aligned annotation: a count, a cadence, a caveat. */
   note?: ReactNode;
+  tone?: 'ok' | 'dim' | 'warn' | 'critical' | 'accent';
 }
 
 export function PanelHead({
   title,
   note,
+  tone = 'ok',
   className,
   children,
   ...props
@@ -31,12 +33,16 @@ export function PanelHead({
   return (
     <header
       className={cn(
-        'flex h-8 shrink-0 items-center gap-3 border-b border-rule px-3',
+        'flex h-9 shrink-0 items-center gap-3 border-b border-rule bg-panel-head px-3',
         className,
       )}
       {...props}
     >
-      <h2 className="silk truncate text-ink-dim">{title}</h2>
+      <h2
+        className={cn('reticle shrink-0', tone !== 'ok' && `reticle-${tone}`)}
+      >
+        {title}
+      </h2>
       {note ? (
         <span className="ml-auto truncate text-[11px] text-ink-faint">
           {note}

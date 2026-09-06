@@ -114,7 +114,7 @@ export function PackTemperatureChart({ series }: PackChartProps) {
           data={data}
           margin={{ top: 4, right: 8, bottom: 0, left: 0 }}
         >
-          <CartesianGrid vertical={false} strokeDasharray="2 3" />
+          <CartesianGrid vertical={false} strokeDasharray="1 3" />
           <XAxis
             dataKey="at"
             type="number"
@@ -206,7 +206,7 @@ export function PackSpreadChart({ series }: PackChartProps) {
           data={data}
           margin={{ top: 4, right: 8, bottom: 0, left: 0 }}
         >
-          <CartesianGrid vertical={false} strokeDasharray="2 3" />
+          <CartesianGrid vertical={false} strokeDasharray="1 3" />
           <XAxis
             dataKey="at"
             type="number"
